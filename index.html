@@ -3,486 +3,3001 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WatchTower AI OS</title>
+<title>WatchTower | Enterprise Command Center</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#07080c;--surface:#0e1016;--card:#12151c;--elev:#181c26;--border:#1e2430;--text:#eef0f6;--muted:#8b93a7;--faint:#5c6578;--accent:#6366f1;--cyan:#22d3ee;--green:#34d399;--red:#f87171;--amber:#fbbf24}
-body{font-family:Inter,-apple-system,BlinkMacSystemFont,system-ui,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;line-height:1.45}
-.hidden{display:none!important}
-.auth{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;background:radial-gradient(ellipse 70% 50% at 50% -10%,rgba(99,102,241,.18),transparent)}
-.box{width:100%;max-width:400px;background:var(--card);border:1px solid var(--border);border-radius:18px;padding:32px}
-.brand{display:flex;align-items:center;gap:12px;margin-bottom:20px}
-.mark{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#6366f1,#22d3ee);display:flex;align-items:center;justify-content:center;font-weight:800}
-label{display:block;font-size:11px;color:var(--muted);margin-bottom:6px}
-input,select,textarea{width:100%;border-radius:10px;border:1px solid var(--border);background:var(--surface);color:var(--text);padding:10px 12px;font-size:13px;outline:none;font-family:inherit;margin-bottom:10px}
-textarea{min-height:110px;resize:vertical}
-.btn{border:none;border-radius:10px;padding:10px 16px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit}
-.btn-p{background:linear-gradient(135deg,#6366f1,#4f46e5);color:#fff;width:100%;height:44px}
-.btn-s{padding:6px 12px;font-size:11px;width:auto;height:auto}
-.btn-g{background:var(--elev);color:var(--muted);border:1px solid var(--border)}
-.btn-ok{background:rgba(52,211,153,.15);color:var(--green);border:1px solid rgba(52,211,153,.3)}
-.err{display:none;background:rgba(248,113,113,.12);color:#fca5a5;padding:10px;border-radius:8px;font-size:12px;margin-bottom:12px}
-.shell{display:flex;min-height:100vh}
-.rail{width:68px;background:var(--surface);border-right:1px solid var(--border);position:fixed;height:100vh;display:flex;flex-direction:column;align-items:center;padding:14px 0;gap:6px;z-index:40}
-.rail button{width:42px;height:42px;border:none;border-radius:12px;background:transparent;color:var(--faint);cursor:pointer;font-size:16px}
-.rail button.active,.rail button:hover{background:var(--elev);color:var(--text)}
-.side{width:220px;margin-left:68px;background:var(--surface);border-right:1px solid var(--border);position:fixed;height:100vh;overflow:auto;padding:16px 10px;z-index:30}
-.side h2{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);padding:8px 10px;margin-top:10px}
-.nav{display:block;width:100%;text-align:left;border:none;background:transparent;color:var(--muted);padding:9px 12px;border-radius:10px;font-size:13px;cursor:pointer}
-.nav:hover,.nav.active{background:var(--elev);color:#c7d2fe}
-.main{margin-left:288px;flex:1;min-height:100vh}
-.top{height:56px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 24px;position:sticky;top:0;background:rgba(7,8,12,.9);backdrop-filter:blur(12px);z-index:20}
-.content{padding:22px 24px;max-width:1280px}
-.hero{padding:24px;border-radius:16px;border:1px solid rgba(99,102,241,.25);background:linear-gradient(125deg,#0f1220,#12182a 50%,#0e1620);margin-bottom:16px}
-.hero h1{font-size:22px;font-weight:700;margin-bottom:6px}
-.hero p{color:var(--muted);font-size:13px;max-width:580px}
-.grid{display:grid;gap:12px}
-.g4{grid-template-columns:repeat(4,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g2{grid-template-columns:1.15fr .85fr}
-.card{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px}
-.card h3{font-size:13px;font-weight:600;margin-bottom:10px}
-.metric{font-size:24px;font-weight:700}
-.sub{font-size:11px;color:var(--muted);margin-top:4px}
-.live{font-size:11px;color:var(--green);font-weight:600}
-.view{display:none}.view.active{display:block}
-.agents{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px}
-.agent{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:16px;cursor:pointer}
-.agent:hover{border-color:rgba(99,102,241,.5)}
-.agent h4{font-size:14px;margin:8px 0 4px}
-.agent p{font-size:12px;color:var(--muted)}
-.chat{background:var(--surface);border:1px solid var(--border);border-radius:12px;height:300px;overflow:auto;padding:14px;margin-bottom:10px;font-size:13px}
-.bubble{background:var(--elev);border-radius:10px;padding:10px 12px;margin-bottom:10px;max-width:92%}
-.bubble.me{background:rgba(99,102,241,.2);margin-left:auto}
-.row{display:flex;gap:8px}
-.row input{flex:1;margin:0}
-.finding{display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--border);font-size:13px}
-.tag{font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px}
-.crit{background:rgba(248,113,113,.2);color:var(--red)}.high{background:rgba(251,191,36,.15);color:var(--amber)}.med{background:rgba(99,102,241,.15);color:#a5b4fc}
-.masked{background:rgba(52,211,153,.08);border:1px solid rgba(52,211,153,.25);border-radius:10px;padding:12px;font-size:12px;font-family:ui-monospace,monospace;white-space:pre-wrap;margin-top:10px;color:#a7f3d0}
-.ints{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px}
-.int{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:14px}
-.int h4{font-size:13px;margin-bottom:6px}
-table{width:100%;border-collapse:collapse;font-size:13px}
-th{text-align:left;font-size:10px;color:var(--faint);padding:8px;border-bottom:1px solid var(--border);text-transform:uppercase}
-td{padding:10px 8px;border-bottom:1px solid rgba(30,36,48,.7)}
-.pill{font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px}
-.ok{background:rgba(52,211,153,.12);color:var(--green)}.bad{background:rgba(248,113,113,.12);color:var(--red)}.pend{background:rgba(251,191,36,.12);color:var(--amber)}
-.empty{text-align:center;color:var(--muted);padding:24px;font-size:13px}
-.chip{font-size:10px;font-weight:700;padding:4px 10px;border-radius:20px;background:rgba(99,102,241,.15);color:#a5b4fc}
-@media(max-width:1000px){.g4,.g3{grid-template-columns:1fr 1fr}.g2{grid-template-columns:1fr}.side{display:none}.main{margin-left:68px}}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0b0c0f;
+  --sidebar: #0f1115;
+  --card: #14161b;
+  --card-hover: #1a1d24;
+  --border: #23262e;
+  --border-soft: #1c1f26;
+  --text: #f0f1f4;
+  --muted: #8b8f9a;
+  --muted2: #5c606b;
+  --blue: #3b82f6;
+  --blue-dim: #1e3a5f;
+  --green: #22c55e;
+  --green-dim: #14532d;
+  --yellow: #eab308;
+  --yellow-dim: #422006;
+  --red: #ef4444;
+  --red-dim: #450a0a;
+  --purple: #a78bfa;
+  --purple-dim: #2e1065;
+  --cyan: #22d3ee;
+  --orange: #f97316;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.35);
+}
+
+body {
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- AUTH ---------- */
+.auth-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% -20%, rgba(59,130,246,0.12), transparent),
+    var(--bg);
+}
+.auth-card {
+  width: 100%;
+  max-width: 380px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: var(--shadow);
+}
+.auth-logo { display: flex; align-items: center; gap: 12px; margin-bottom: 28px; }
+.auth-logo .logo {
+  width: 40px; height: 40px; border-radius: 10px;
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 18px; color: white;
+}
+.auth-logo .logo-text { font-size: 18px; font-weight: 700; letter-spacing: -0.02em; }
+.auth-card h2 { font-size: 18px; font-weight: 600; margin-bottom: 4px; }
+.auth-card p.sub { color: var(--muted); font-size: 13px; margin-bottom: 22px; }
+.auth-field { margin-bottom: 14px; }
+.auth-field label { display: block; font-size: 11px; color: var(--muted); margin-bottom: 6px; font-weight: 500; }
+.auth-field input {
+  width: 100%; height: 42px; border-radius: var(--radius-sm);
+  border: 1px solid var(--border); background: #0d0f13; color: white;
+  padding: 0 12px; font-size: 14px; outline: none; transition: border-color 0.15s;
+}
+.auth-field input:focus { border-color: var(--blue); }
+.auth-button {
+  width: 100%; height: 44px; border-radius: var(--radius-sm); border: none;
+  background: linear-gradient(135deg, #3b82f6, #2563eb); color: white;
+  font-weight: 600; font-size: 14px; cursor: pointer; margin-top: 8px;
+  transition: opacity 0.15s, transform 0.1s;
+}
+.auth-button:hover { opacity: 0.92; }
+.auth-button:active { transform: scale(0.99); }
+.auth-button:disabled { opacity: 0.55; cursor: default; }
+.auth-toggle { text-align: center; margin-top: 18px; font-size: 13px; color: var(--muted); }
+.auth-toggle button { background: none; border: none; color: var(--blue); cursor: pointer; font-size: 13px; font-weight: 500; }
+.auth-error {
+  background: var(--red-dim); color: #fca5a5; font-size: 12px;
+  padding: 10px 12px; border-radius: 8px; margin-bottom: 14px; display: none;
+  border: 1px solid rgba(239,68,68,0.25);
+}
+.auth-loading {
+  min-height: 100vh; display: flex; align-items: center; justify-content: center;
+  color: var(--muted); font-size: 14px; flex-direction: column; gap: 12px;
+}
+.auth-loading::before {
+  content: ""; width: 28px; height: 28px; border: 2px solid var(--border);
+  border-top-color: var(--blue); border-radius: 50%; animation: spin 0.7s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.hidden { display: none !important; }
+
+/* ---------- LAYOUT ---------- */
+.app { min-height: 100vh; display: flex; }
+.sidebar {
+  width: 260px; height: 100vh; position: fixed; left: 0; top: 0;
+  background: var(--sidebar); border-right: 1px solid var(--border);
+  display: flex; flex-direction: column; z-index: 100;
+}
+.main { width: calc(100% - 260px); margin-left: 260px; min-height: 100vh; }
+
+.logo-area {
+  height: 64px; display: flex; align-items: center; gap: 12px;
+  padding: 0 18px; border-bottom: 1px solid var(--border);
+}
+.logo {
+  width: 34px; height: 34px; border-radius: 9px;
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; font-size: 15px; color: white;
+}
+.logo-text { font-size: 16px; font-weight: 700; letter-spacing: -0.02em; }
+
+.sidebar-content { flex: 1; overflow-y: auto; padding: 12px 8px; }
+.sidebar-content::-webkit-scrollbar { width: 4px; }
+.sidebar-content::-webkit-scrollbar-thumb { background: #2a2e38; border-radius: 4px; }
+
+.section-title {
+  color: #5a5e6a; font-size: 10px; font-weight: 700; letter-spacing: 0.1em;
+  padding: 0 12px; margin: 14px 0 6px; text-transform: uppercase;
+}
+.nav-item {
+  width: 100%; border: none; background: transparent; color: #9ca0ab;
+  padding: 9px 12px; border-radius: 8px; display: flex; align-items: center;
+  gap: 10px; cursor: pointer; font-size: 13px; text-align: left;
+  transition: background 0.12s, color 0.12s; font-weight: 500;
+}
+.nav-item:hover { background: #1a1d24; color: #e4e6eb; }
+.nav-item.active {
+  background: linear-gradient(90deg, rgba(59,130,246,0.15), transparent);
+  color: #93c5fd; border-left: 2px solid var(--blue); padding-left: 10px;
+}
+.nav-icon { width: 18px; text-align: center; font-size: 14px; opacity: 0.9; }
+.badge {
+  margin-left: auto; background: var(--red); color: white;
+  min-width: 18px; height: 18px; display: flex; align-items: center; justify-content: center;
+  border-radius: 9px; font-size: 10px; font-weight: 700; padding: 0 5px;
+}
+
+.sidebar-bottom { border-top: 1px solid var(--border); padding: 12px; }
+.company-info { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.company-info strong { font-size: 12px; }
+.enterprise {
+  color: var(--purple); font-size: 9px; font-weight: 800;
+  background: var(--purple-dim); padding: 2px 6px; border-radius: 4px;
+}
+.logout {
+  width: 100%; border: none; background: transparent; color: #7a7e8a;
+  display: flex; gap: 8px; align-items: center; padding: 8px 4px;
+  cursor: pointer; font-size: 12px; border-radius: 6px;
+}
+.logout:hover { color: #e4e6eb; background: #1a1d24; }
+
+/* ---------- TOPBAR ---------- */
+.topbar {
+  height: 64px; border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 24px; position: sticky; top: 0; z-index: 50;
+  background: rgba(11,12,15,0.92); backdrop-filter: blur(12px);
+}
+.page-heading { display: flex; align-items: center; gap: 12px; }
+.page-heading strong { font-size: 15px; font-weight: 600; }
+.viewing {
+  background: var(--blue-dim); color: #93c5fd;
+  padding: 4px 10px; border-radius: 20px; font-size: 10px; font-weight: 700;
+}
+.top-right { display: flex; align-items: center; gap: 8px; }
+.search {
+  width: 240px; height: 38px; border: 1px solid var(--border); background: #0d0f13;
+  border-radius: 8px; display: flex; align-items: center; gap: 8px;
+  padding: 0 12px; color: var(--muted2); font-size: 12px;
+}
+.search input {
+  width: 100%; border: none; outline: none; background: transparent;
+  color: white; font-size: 12px;
+}
+.search kbd {
+  border: 1px solid #2a2e38; padding: 2px 5px; border-radius: 4px;
+  font-size: 9px; color: var(--muted2);
+}
+.top-button {
+  width: 38px; height: 38px; border-radius: 8px; border: 1px solid var(--border);
+  background: #0d0f13; color: #9ca0ab; cursor: pointer; position: relative;
+  display: flex; align-items: center; justify-content: center; font-size: 14px;
+}
+.top-button:hover { background: #1a1d24; color: white; }
+.notification-count {
+  position: absolute; right: -4px; top: -4px; width: 16px; height: 16px;
+  border-radius: 50%; background: var(--red); color: white; font-size: 9px;
+  display: flex; align-items: center; justify-content: center; font-weight: 700;
+}
+
+/* ---------- CONTENT ---------- */
+.content { max-width: 1480px; margin: 0 auto; padding: 24px; }
+
+.welcome {
+  min-height: 100px; border-radius: 14px; border: 1px solid #1e3a5f;
+  background: linear-gradient(120deg, #0c1a2e 0%, #12182a 50%, #1a1530 100%);
+  padding: 24px 28px; display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 20px; position: relative; overflow: hidden;
+}
+.welcome::after {
+  content: ""; position: absolute; right: -40px; top: -40px; width: 180px; height: 180px;
+  background: radial-gradient(circle, rgba(59,130,246,0.15), transparent 70%);
+  pointer-events: none;
+}
+.welcome h1 { font-size: 22px; font-weight: 700; margin-bottom: 6px; letter-spacing: -0.02em; }
+.welcome p { color: #94a3b8; font-size: 13px; max-width: 520px; }
+.welcome-meta { text-align: right; }
+.welcome-meta .live-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: var(--green-dim); color: #86efac; padding: 5px 10px;
+  border-radius: 20px; font-size: 11px; font-weight: 600;
+}
+.welcome-meta .live-pill span {
+  width: 6px; height: 6px; border-radius: 50%; background: var(--green);
+  animation: pulse 1.5s ease-in-out infinite;
+}
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+.card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 18px; transition: border-color 0.15s;
+}
+.card:hover { border-color: #2c303a; }
+.card-title {
+  display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;
+}
+.card-title h3 { font-size: 13px; font-weight: 600; }
+.card-title span { color: var(--muted2); font-size: 11px; }
+
+.dashboard-grid {
+  display: grid; grid-template-columns: 1fr 1.05fr 1fr; gap: 16px;
+}
+.score-card { min-height: 280px; }
+.score-area {
+  min-height: 200px; display: flex; align-items: center; justify-content: center; gap: 20px;
+}
+.score-ring { width: 140px; height: 140px; position: relative; }
+.score-ring svg { transform: rotate(-90deg); }
+.score-ring circle { fill: none; stroke-width: 11; }
+.ring-bg { stroke: #1e2128; }
+.ring-value {
+  stroke: url(#scoreGrad); stroke-linecap: round;
+  stroke-dasharray: 333; stroke-dashoffset: 97; transition: 0.6s ease;
+}
+.score-number {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+}
+.score-number strong { font-size: 28px; font-weight: 700; }
+.score-number span { color: var(--muted2); font-size: 10px; }
+.score-description { max-width: 140px; }
+.score-status {
+  display: inline-block; background: var(--green-dim); color: #86efac;
+  padding: 4px 8px; border-radius: 5px; font-size: 10px; font-weight: 700; margin-bottom: 8px;
+}
+.score-description p { color: var(--muted); font-size: 11px; line-height: 1.55; }
+
+.departments { display: flex; flex-direction: column; gap: 12px; }
+.department {
+  display: grid; grid-template-columns: 110px 1fr 28px; align-items: center; gap: 8px;
+}
+.department-name { color: #9ca0ab; font-size: 12px; }
+.department-bar { height: 8px; background: #1e2128; border-radius: 20px; overflow: hidden; }
+.department-fill { height: 100%; border-radius: 20px; background: var(--green); transition: width 0.4s; }
+.department-fill.warning { background: var(--yellow); }
+.department-fill.danger { background: var(--red); }
+.department-score { font-size: 11px; text-align: right; font-weight: 600; }
+
+.alerts { display: flex; flex-direction: column; gap: 12px; }
+.alert { display: grid; grid-template-columns: 42px 1fr; gap: 10px; }
+.severity {
+  height: fit-content; width: fit-content; padding: 3px 6px; border-radius: 4px;
+  color: white; font-size: 8px; font-weight: 800; letter-spacing: 0.03em;
+}
+.severity.crit { background: var(--red); }
+.severity.high { background: var(--orange); }
+.severity.med { background: var(--blue); }
+.alert strong { font-size: 12px; display: block; }
+.alert p { color: var(--muted); font-size: 11px; line-height: 1.45; margin-top: 2px; }
+
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 16px; }
+.kpi {
+  min-height: 120px; padding: 16px; background: var(--card);
+  border: 1px solid var(--border); border-radius: var(--radius);
+}
+.kpi-label { color: var(--muted); font-size: 11px; font-weight: 500; }
+.kpi-value { display: block; font-size: 24px; font-weight: 700; margin-top: 6px; letter-spacing: -0.02em; }
+.kpi-sub { display: block; color: var(--muted2); font-size: 10px; margin-top: 4px; }
+.kpi-icon {
+  width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
+  border-radius: 7px; margin-bottom: 10px; font-size: 13px;
+}
+.green-icon { background: var(--green-dim); color: #86efac; }
+.blue-icon { background: var(--blue-dim); color: #93c5fd; }
+.yellow-icon { background: var(--yellow-dim); color: #fde047; }
+.purple-icon { background: var(--purple-dim); color: #c4b5fd; }
+
+.lower-grid { display: grid; grid-template-columns: 1.35fr 0.65fr; gap: 16px; margin-top: 16px; }
+.action {
+  display: grid; grid-template-columns: 32px 1fr 18px; gap: 10px; align-items: center;
+  padding: 12px 0; border-bottom: 1px solid var(--border-soft);
+}
+.action:last-child { border-bottom: none; }
+.action-number { color: var(--muted2); font-size: 11px; font-weight: 700; }
+.action strong { font-size: 12px; }
+.action p { color: var(--muted); font-size: 11px; margin-top: 3px; line-height: 1.45; }
+.action-arrow { color: #4a4e58; }
+
+.live-label { color: var(--green) !important; font-size: 10px !important; font-weight: 700; }
+.activity {
+  display: flex; gap: 10px; padding: 11px 0; border-bottom: 1px solid var(--border-soft);
+}
+.activity:last-child { border-bottom: none; }
+.activity-dot {
+  width: 7px; height: 7px; min-width: 7px; border-radius: 50%; margin-top: 5px;
+}
+.blue-dot { background: var(--blue); }
+.green-dot { background: var(--green); }
+.yellow-dot { background: var(--yellow); }
+.activity-text { font-size: 12px; line-height: 1.45; }
+.activity-text strong { color: #e4e6eb; }
+.activity-time { display: block; color: var(--muted2); font-size: 10px; margin-top: 2px; }
+
+.bottom-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+.win {
+  display: flex; align-items: center; gap: 9px; color: #9ca0ab;
+  font-size: 12px; margin-bottom: 12px;
+}
+.win:last-child { margin-bottom: 0; }
+.check { color: var(--green); font-size: 13px; }
+.win strong { color: #e4e6eb; }
+
+.risk-item { margin-bottom: 14px; }
+.risk-item:last-child { margin-bottom: 0; }
+.risk-top { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 5px; }
+.risk-top span { color: #9ca0ab; }
+.risk-top strong { font-size: 10px; }
+.risk-bar { height: 6px; background: #1e2128; border-radius: 20px; overflow: hidden; }
+.risk-progress { height: 100%; border-radius: 20px; }
+.critical { background: var(--red); }
+.high { background: var(--yellow); }
+.low { background: var(--green); }
+
+.ai-section { margin-top: 16px; }
+.ai-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.ai-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 16px;
+}
+.ai-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.ai-card-header h3 { font-size: 13px; font-weight: 600; }
+.ai-status {
+  font-size: 9px; padding: 3px 7px; border-radius: 4px;
+  background: var(--red-dim); color: #fca5a5; font-weight: 700;
+}
+.ai-status.ok { background: var(--green-dim); color: #86efac; }
+.ai-number { font-size: 26px; font-weight: 700; letter-spacing: -0.02em; }
+.ai-description { color: var(--muted); font-size: 11px; margin-top: 4px; line-height: 1.45; }
+
+.footer {
+  border-top: 1px solid var(--border); margin-top: 24px; padding: 16px 2px;
+  display: flex; justify-content: space-between; color: var(--muted2); font-size: 11px;
+}
+.system-status { display: flex; align-items: center; gap: 6px; }
+.system-status span { width: 6px; height: 6px; border-radius: 50%; background: var(--green); }
+
+/* ---------- VIEW SYSTEM ---------- */
+.view-section { display: none; }
+.view-section.active { display: block; }
+.view-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; flex-wrap: wrap; gap: 10px; }
+.view-header h2 { font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }
+.view-sub { color: var(--muted); font-size: 13px; margin-bottom: 20px; }
+.view-card { margin-bottom: 16px; }
+
+.form-row {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px; margin-bottom: 12px;
+}
+.form-field label { display: block; font-size: 11px; color: var(--muted); margin-bottom: 5px; font-weight: 500; }
+.form-field input, .form-field select, .form-field textarea {
+  width: 100%; height: 38px; border-radius: 7px; border: 1px solid var(--border);
+  background: #0d0f13; color: white; padding: 0 11px; font-size: 13px;
+  outline: none; font-family: inherit; transition: border-color 0.15s;
+}
+.form-field textarea { height: 72px; padding: 10px 11px; resize: vertical; }
+.form-field input:focus, .form-field select:focus, .form-field textarea:focus { border-color: var(--blue); }
+
+.btn {
+  border: none; border-radius: 7px; padding: 8px 14px; font-size: 12px;
+  font-weight: 600; cursor: pointer; transition: opacity 0.12s, transform 0.08s;
+}
+.btn:hover { opacity: 0.9; }
+.btn:active { transform: scale(0.98); }
+.btn-primary { background: linear-gradient(135deg, #3b82f6, #2563eb); color: white; }
+.btn-approve { background: var(--green-dim); color: #86efac; border: 1px solid rgba(34,197,94,0.3); }
+.btn-reject { background: var(--red-dim); color: #fca5a5; border: 1px solid rgba(239,68,68,0.3); }
+.btn-ghost { background: #1a1d24; color: #9ca0ab; border: 1px solid var(--border); }
+.btn-small { padding: 5px 10px; font-size: 11px; }
+
+.data-table { width: 100%; border-collapse: collapse; }
+.data-table th {
+  text-align: left; color: var(--muted); font-size: 10px; font-weight: 700;
+  padding: 8px 10px; border-bottom: 1px solid var(--border); letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.data-table td {
+  padding: 11px 10px; font-size: 13px; border-bottom: 1px solid var(--border-soft);
+  vertical-align: middle;
+}
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tr:hover td { background: rgba(255,255,255,0.015); }
+
+.status-pill {
+  display: inline-block; padding: 3px 8px; border-radius: 5px;
+  font-size: 10px; font-weight: 700; letter-spacing: 0.02em;
+}
+.status-pending { background: var(--yellow-dim); color: #fde047; }
+.status-approved, .status-active, .status-resolved, .status-closed_won { background: var(--green-dim); color: #86efac; }
+.status-rejected, .status-closed_lost, .status-critical { background: var(--red-dim); color: #fca5a5; }
+.status-on_leave, .status-in_progress, .status-negotiation { background: var(--yellow-dim); color: #fde047; }
+.status-offboarded, .status-open { background: #1e2128; color: #9ca0ab; }
+.risk-low { background: var(--green-dim); color: #86efac; }
+.risk-medium { background: var(--yellow-dim); color: #fde047; }
+.risk-high { background: var(--red-dim); color: #fca5a5; }
+.stage-prospecting { background: var(--blue-dim); color: #93c5fd; }
+.sev-low { background: #1e2128; color: #9ca0ab; }
+.sev-medium { background: var(--yellow-dim); color: #fde047; }
+.sev-high { background: var(--orange); color: white; }
+.sev-critical { background: var(--red); color: white; }
+
+.notif-row {
+  display: flex; justify-content: space-between; align-items: flex-start;
+  gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--border-soft);
+}
+.notif-row:last-child { border-bottom: none; }
+.notif-row.unread strong { color: var(--text); }
+.notif-row strong { font-size: 13px; color: #c8cad0; }
+.notif-row p { color: var(--muted); font-size: 12px; margin-top: 3px; }
+.unread-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--blue); margin-top: 5px; flex-shrink: 0; }
+
+.finance-summary { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 16px; }
+.empty-state { color: var(--muted); font-size: 13px; text-align: center; padding: 28px 0; }
+
+/* Module dashboards */
+.mod-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 16px; }
+.mod-kpi {
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 14px 16px;
+}
+.mod-kpi .label { font-size: 11px; color: var(--muted); margin-bottom: 4px; }
+.mod-kpi .value { font-size: 20px; font-weight: 700; letter-spacing: -0.02em; }
+.mod-kpi .delta { font-size: 11px; margin-top: 4px; }
+.delta-up { color: var(--green); }
+.delta-down { color: var(--red); }
+
+.pipeline-stages {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 16px;
+}
+.pipeline-stage {
+  background: #0d0f13; border: 1px solid var(--border); border-radius: 10px; padding: 14px;
+}
+.pipeline-stage .stage-name { font-size: 11px; color: var(--muted); margin-bottom: 6px; }
+.pipeline-stage .stage-count { font-size: 22px; font-weight: 700; }
+.pipeline-stage .stage-value { font-size: 12px; color: var(--muted2); margin-top: 2px; }
+
+.issue-filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+.filter-chip {
+  padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border);
+  background: transparent; color: var(--muted); font-size: 11px; font-weight: 600;
+  cursor: pointer; transition: all 0.12s;
+}
+.filter-chip.active, .filter-chip:hover {
+  background: var(--blue-dim); color: #93c5fd; border-color: rgba(59,130,246,0.4);
+}
+
+.placeholder-grid {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px;
+}
+.feature-card {
+  background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 18px; transition: border-color 0.15s, transform 0.15s;
+}
+.feature-card:hover { border-color: #2c303a; transform: translateY(-1px); }
+.feature-card .fc-icon {
+  width: 36px; height: 36px; border-radius: 9px; display: flex;
+  align-items: center; justify-content: center; font-size: 16px; margin-bottom: 12px;
+}
+.feature-card h4 { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+.feature-card p { font-size: 12px; color: var(--muted); line-height: 1.5; }
+.feature-card .fc-meta { margin-top: 12px; font-size: 11px; color: var(--muted2); }
+
+.timeline { position: relative; padding-left: 20px; }
+.timeline::before {
+  content: ""; position: absolute; left: 5px; top: 4px; bottom: 4px;
+  width: 2px; background: var(--border);
+}
+.timeline-item { position: relative; margin-bottom: 16px; }
+.timeline-item::before {
+  content: ""; position: absolute; left: -17px; top: 5px;
+  width: 8px; height: 8px; border-radius: 50%; background: var(--blue);
+  border: 2px solid var(--bg);
+}
+.timeline-item strong { font-size: 13px; display: block; }
+.timeline-item span { font-size: 11px; color: var(--muted); }
+
+.mobile-menu {
+  display: none; border: none; background: transparent; color: #9ca0ab;
+  font-size: 20px; cursor: pointer; margin-right: 8px;
+}
+
+@media (max-width: 1250px) {
+  .dashboard-grid { grid-template-columns: 1fr 1fr; }
+  .alerts-card { grid-column: span 2; }
+  .kpi-grid, .mod-kpis { grid-template-columns: repeat(2, 1fr); }
+  .ai-grid, .pipeline-stages { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 900px) {
+  .sidebar { transform: translateX(-100%); transition: 0.2s ease; }
+  .sidebar.show { transform: translateX(0); }
+  .main { width: 100%; margin-left: 0; }
+  .mobile-menu { display: block; }
+  .search { display: none; }
+  .dashboard-grid, .lower-grid, .bottom-grid, .ai-grid, .pipeline-stages, .mod-kpis, .finance-summary {
+    grid-template-columns: 1fr;
+  }
+  .alerts-card { grid-column: auto; }
+}
+@media (max-width: 600px) {
+  .content { padding: 14px; }
+  .welcome { padding: 18px; }
+  .welcome h1 { font-size: 18px; }
+  .score-area { flex-direction: column; gap: 12px; }
+  .score-description { text-align: center; max-width: 220px; }
+  .footer { flex-direction: column; gap: 8px; }
+}
+/* =========================================================
+   ROLE LOGIN
+========================================================= */
+
+.role-selection {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 25px;
+}
+
+.role-card {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  border: 1px solid #29292f;
+  border-radius: 12px;
+  background: #111114;
+  color: #fff;
+  cursor: pointer;
+  text-align: left;
+  transition: all 0.2s ease;
+}
+
+.role-card:hover {
+  border-color: #55555f;
+  background: #18181d;
+  transform: translateY(-1px);
+}
+
+.role-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #222228;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.role-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.role-info strong {
+  font-size: 14px;
+}
+
+.role-info span {
+  color: #85858e;
+  font-size: 11px;
+}
+
+.role-arrow {
+  color: #777780;
+  font-size: 18px;
+}
+
+.auth-heading {
+  text-align: center;
+  margin-bottom: 22px;
+}
+
+.auth-heading h2 {
+  margin: 0 0 7px;
+  font-size: 21px;
+}
+
+.auth-heading p {
+  margin: 0;
+  color: #85858e;
+  font-size: 12px;
+}
+
+.back-role-btn {
+  background: transparent;
+  border: none;
+  color: #8d8d98;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 0;
+  margin-bottom: 20px;
+}
+
+.back-role-btn:hover {
+  color: #fff;
+}
+
+.selected-role-icon {
+  width: 46px;
+  height: 46px;
+  margin: 0 auto 12px;
+  border-radius: 12px;
+  background: #222228;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.auth-footer {
+  text-align: center;
+  margin-top: 20px;
+  color: #65656d;
+  font-size: 10px;
+}
+
+.auth-error {
+  margin: 12px 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(239, 68, 68, 0.10);
+  border: 1px solid rgba(239, 68, 68, 0.25);
+  color: #f87171;
+  font-size: 11px;
+  line-height: 1.4;
+}
+
+.auth-loading {
+  text-align: center;
+}
+
+.loading-spinner {
+  width: 28px;
+  height: 28px;
+  margin: 0 auto 12px;
+  border: 3px solid #29292f;
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: watchtower-spin 0.8s linear infinite;
+}
+
+@keyframes watchtower-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.hidden {
+  display: none !important;
+}
 </style>
 </head>
 <body>
-<div id="auth" class="auth">
-  <div class="box">
-    <div class="brand"><div class="mark">W</div><strong>WatchTower AI OS</strong></div>
-    <h2 id="authTitle" style="margin-bottom:6px">Sign in</h2>
-    <p style="color:var(--muted);font-size:13px;margin-bottom:16px">Agentic OS · Shadow Auditor · Supabase live data</p>
-    <div class="err" id="err"></div>
-    <form id="authForm">
-      <label>Email</label><input type="email" id="email" required>
-      <label>Password</label><input type="password" id="password" required minlength="6">
-      <button class="btn btn-p" id="authBtn">Sign in</button>
-    </form>
-    <p style="text-align:center;margin-top:14px;font-size:13px;color:var(--muted)">
-      <button type="button" id="toggleAuth" style="background:none;border:none;color:var(--cyan);cursor:pointer">Sign up instead</button>
-    </p>
-  </div>
-</div>
 
-<div id="app" class="shell hidden">
-  <nav class="rail">
-    <div class="mark" style="width:36px;height:36px;font-size:14px;margin-bottom:8px">W</div>
-    <button class="active" data-go="command-center">◈</button>
-    <button data-go="agents">◇</button>
-    <button data-go="auditor">🛡</button>
-    <button data-go="integrations">⬡</button>
-    <button data-go="approvals">✓</button>
-    <button data-go="hr">♙</button>
-    <div style="flex:1"></div>
-    <button id="out">↪</button>
-  </nav>
-  <aside class="side">
-    <h2>Command</h2>
-    <button class="nav active" data-go="command-center">Executive Command</button>
-    <button class="nav" data-go="knowledge">Knowledge</button>
-    <h2>AI Workforce</h2>
-    <button class="nav" data-go="agents">Marketplace</button>
-    <button class="nav" data-go="agent-hr">HR Agent</button>
-    <button class="nav" data-go="agent-sales">Sales Agent</button>
-    <button class="nav" data-go="agent-marketing">Marketing Agent</button>
-    <button class="nav" data-go="agent-finance">Finance Agent</button>
-    <button class="nav" data-go="agent-ops">Operations Agent</button>
-    <button class="nav" data-go="agent-it">IT Agent</button>
-    <button class="nav" data-go="agent-lead">Leadership Agent</button>
-    <h2>Security</h2>
-    <button class="nav" data-go="auditor">Shadow Auditor</button>
-    <button class="nav" data-go="audit-logs">Audit Logs</button>
-    <h2>Systems</h2>
-    <button class="nav" data-go="integrations">Integrations Hub</button>
-    <button class="nav" data-go="approvals">Approvals</button>
-    <button class="nav" data-go="issues">Issues</button>
-    <button class="nav" data-go="hr">HR Directory</button>
-    <button class="nav" data-go="finance" id="navFin">Finance</button>
-    <button class="nav" data-go="sales" id="navSales">Sales</button>
-  </aside>
-  <div class="main">
-    <header class="top">
-      <div style="display:flex;gap:10px;align-items:center"><strong id="title">Executive Command</strong><span class="chip" id="roleChip">—</span></div>
-      <span class="live">● Live</span>
-    </header>
-    <div class="content">
+<!-- AUTH LOADING -->
+<div id="authLoading" class="auth-loading">Loading WatchTower…</div>
 
-      <div class="view active" id="v-command-center">
-        <div class="hero">
-          <h1 id="welcome">Command Center</h1>
-          <p>AI agents monitor business context and recommend actions. Humans approve. Shadow Auditor guards outbound content to ChatGPT, Gemini, Claude, and other external models.</p>
-        </div>
-        <div class="grid g4" style="margin-bottom:12px">
-          <div class="card"><div class="sub">Agents online</div><div class="metric">7</div></div>
-          <div class="card"><div class="sub">Founder Score</div><div class="metric" id="fscore">71</div></div>
-          <div class="card"><div class="sub">Open issues</div><div class="metric" id="oiss">—</div></div>
-          <div class="card"><div class="sub">Pending approvals</div><div class="metric" id="pappr">—</div></div>
-        </div>
-        <div class="grid g2">
-          <div class="card"><h3>Agent recommendations (human-in-the-loop)</h3><div id="recs"></div></div>
-          <div class="card"><h3>Shadow Auditor</h3><p class="sub">PII, credentials, cards, salaries, confidential markers — block or mask before external AI. Full audit log retained.</p></div>
-        </div>
+<!-- AUTH SCREEN -->
+<div id="authScreen" class="auth-screen">
+
+  <div class="auth-card">
+
+    <div class="auth-logo">
+      <div class="logo-mark">W</div>
+      <div>
+        <h1>WatchTower</h1>
+        <span>Enterprise Intelligence</span>
+      </div>
+    </div>
+
+    <!-- ROLE SELECTION -->
+    <div id="roleSelection">
+
+      <div class="auth-heading">
+        <h2>Welcome to WatchTower</h2>
+        <p>Select your role to continue</p>
       </div>
 
-      <div class="view" id="v-agents">
-        <div class="hero"><h1>AI Workforce</h1><p>Department agents as digital employees: monitor, reason, recommend, execute only after approval.</p></div>
-        <div class="agents" id="market"></div>
-      </div>
+      <div class="role-selection">
 
-      <div class="view" id="v-agent">
-        <div class="hero" id="agentHero"></div>
-        <div class="grid g2">
-          <div class="card">
-            <h3>Conversation</h3>
-            <div class="chat" id="chat"></div>
-            <div class="row"><input id="ain" placeholder="Ask agent (scanned by Shadow Auditor first)…"><button class="btn btn-p btn-s" id="asend">Send</button></div>
+        <button type="button"
+                class="role-card"
+                onclick="selectLoginRole('ceo')">
+
+          <div class="role-icon">C</div>
+
+          <div class="role-info">
+            <strong>CEO</strong>
+            <span>Executive Command Center</span>
           </div>
-          <div class="card"><h3>Live context</h3><div id="arecs" class="sub">Agent pulls HR, deals, finance, or knowledge from Supabase.</div></div>
-        </div>
-      </div>
 
-      <div class="view" id="v-auditor">
-        <div class="hero" style="border-color:rgba(248,113,113,.35)">
-          <h1>🛡 Shadow Auditor</h1>
-          <p>Privacy and DLP guardian. Scan any text before it reaches external AI. Critical findings are blocked; high-risk content is masked; everything is logged.</p>
-        </div>
-        <div class="card">
-          <textarea id="scanIn" placeholder="Paste prompt, email, or document intended for ChatGPT / Gemini / Claude…"></textarea>
-          <div class="row" style="margin-top:8px">
-            <select id="scanDest" style="width:auto;margin:0"><option>ChatGPT</option><option>Gemini</option><option>Claude</option><option>Other</option></select>
-            <button class="btn btn-p btn-s" id="scanBtn">Run Shadow Audit</button>
+          <span class="role-arrow">→</span>
+
+        </button>
+
+
+        <button type="button"
+                class="role-card"
+                onclick="selectLoginRole('manager')">
+
+          <div class="role-icon">M</div>
+
+          <div class="role-info">
+            <strong>Manager</strong>
+            <span>Department Management</span>
           </div>
-          <div id="scanOut" style="margin-top:12px"></div>
-        </div>
-      </div>
 
-      <div class="view" id="v-audit-logs"><div class="card"><h3>Audit logs</h3><div id="alog"></div></div></div>
+          <span class="role-arrow">→</span>
 
-      <div class="view" id="v-integrations">
-        <div class="hero"><h1>Integrations Hub</h1><p>Keka, Zoho, Salesforce, HubSpot, Google Workspace, Microsoft 365, Slack, Teams, Jira, QuickBooks, Stripe. Control plane UI; production OAuth lives in Edge Functions + Supabase Vault.</p></div>
-        <div class="ints" id="ints"></div>
-      </div>
+        </button>
 
-      <div class="view" id="v-knowledge"><div class="card"><h3>Company knowledge (AI memory)</h3><div id="know"></div></div></div>
 
-      <div class="view" id="v-approvals">
-        <div class="card" style="margin-bottom:12px"><h3>New request</h3>
-          <form id="af"><input id="at" placeholder="Title" required><input id="aa" type="number" placeholder="Amount"><select id="ac"><option>General</option><option>Travel</option><option>Software</option></select>
-          <button class="btn btn-p btn-s">Submit</button></form></div>
-        <div class="card"><div id="alist"></div></div>
-      </div>
+        <button type="button"
+                class="role-card"
+                onclick="selectLoginRole('employee')">
 
-      <div class="view" id="v-issues">
-        <div class="card" style="margin-bottom:12px">
-          <form id="iff"><input id="it" placeholder="Title" required>
-            <select id="idept"><option>Engineering</option><option>Legal</option><option>Sales</option><option>HR</option><option>IT</option></select>
-            <select id="isev"><option value="medium">Medium</option><option value="high">High</option><option value="critical">Critical</option><option value="low">Low</option></select>
-            <textarea id="idesc" placeholder="Description"></textarea>
-            <button class="btn btn-p btn-s">Raise issue</button></form>
-        </div>
-        <div class="card"><div id="ilist"></div></div>
-      </div>
+          <div class="role-icon">E</div>
 
-      <div class="view" id="v-hr">
-        <div class="card" style="margin-bottom:12px" id="hrAdd">
-          <form id="ef"><input id="en" placeholder="Name" required><input id="et" placeholder="Title"><input id="ed" placeholder="Department">
-          <button class="btn btn-p btn-s">Add employee</button></form>
-        </div>
-        <div class="card"><div id="elist"></div></div>
-      </div>
+          <div class="role-info">
+            <strong>Employee</strong>
+            <span>Employee Workspace</span>
+          </div>
 
-      <div class="view" id="v-finance">
-        <div class="grid g3" id="fsum" style="margin-bottom:12px"></div>
-        <div class="card" id="fadd" style="margin-bottom:12px">
-          <form id="tf"><input id="td" placeholder="Description" required><input id="tam" type="number" placeholder="Amount" required>
-            <select id="tty"><option value="income">Income</option><option value="expense">Expense</option></select>
-            <button class="btn btn-p btn-s">Add</button></form>
-        </div>
-        <div class="card"><div id="tlist"></div></div>
-      </div>
+          <span class="role-arrow">→</span>
 
-      <div class="view" id="v-sales">
-        <div class="card" style="margin-bottom:12px" id="sadd">
-          <form id="df"><input id="dn" placeholder="Deal" required><input id="dv" type="number" placeholder="Value" required>
-            <select id="ds"><option value="prospecting">Prospecting</option><option value="negotiation">Negotiation</option><option value="closed_won">Won</option><option value="closed_lost">Lost</option></select>
-            <button class="btn btn-p btn-s">Add deal</button></form>
-        </div>
-        <div class="card"><div id="dlist"></div></div>
+        </button>
+
       </div>
 
     </div>
+
+
+    <!-- LOGIN FORM -->
+    <div id="roleLogin" class="hidden">
+
+      <button type="button"
+              class="back-role-btn"
+              onclick="backToRoleSelection()">
+        ← Back to role selection
+      </button>
+
+      <div class="auth-heading">
+
+        <div id="selectedRoleIcon" class="selected-role-icon">
+          C
+        </div>
+
+        <h2 id="selectedRoleTitle">CEO Login</h2>
+
+        <p id="selectedRoleSub">
+          Sign in to your executive command center
+        </p>
+
+      </div>
+
+
+      <form id="authForm">
+
+        <div class="auth-field">
+
+          <label for="authEmail">Email</label>
+
+          <input
+            type="email"
+            id="authEmail"
+            placeholder="Enter your email"
+            required
+            autocomplete="email"
+          >
+
+        </div>
+
+
+        <div class="auth-field">
+
+          <label for="authPassword">Password</label>
+
+          <input
+            type="password"
+            id="authPassword"
+            placeholder="Enter your password"
+            required
+            autocomplete="current-password"
+          >
+
+        </div>
+
+
+        <div
+          id="authError"
+          class="auth-error"
+          style="display:none;">
+        </div>
+
+
+        <button
+          type="submit"
+          id="authSubmit"
+          class="auth-button">
+          Sign In
+        </button>
+
+      </form>
+
+
+      <div class="auth-footer">
+
+        <span>WatchTower Enterprise</span>
+
+      </div>
+
+    </div>
+
+
+    <!-- LOADING -->
+    <div id="authLoading" class="auth-loading">
+
+      <div class="loading-spinner"></div>
+
+      <p>Checking your session...</p>
+
+    </div>
+
   </div>
+
+</div>
+
+<!-- APP -->
+<div class="app hidden" id="appRoot">
+
+<aside class="sidebar" id="sidebar">
+  <div class="logo-area">
+    <div class="logo">W</div>
+    <div class="logo-text">WatchTower</div>
+  </div>
+
+  <div class="sidebar-content">
+    <div class="section-title">Executive</div>
+    <button class="nav-item active" data-view="command-center"><span class="nav-icon">◈</span>Command Center</button>
+    <button class="nav-item" data-view="executive"><span class="nav-icon">◎</span>Executive Office & OKRs</button>
+    <button class="nav-item" data-view="notifications"><span class="nav-icon">♧</span>Notification Center<span class="badge" id="notifBadge">0</span></button>
+    <button class="nav-item" data-view="approvals"><span class="nav-icon">✓</span>Approval Engine</button>
+    <button class="nav-item" data-view="issues"><span class="nav-icon">⚑</span>Issue Tracker<span class="badge" id="issueBadge" style="display:none">0</span></button>
+
+    <div class="section-title">Intelligence</div>
+    <button class="nav-item" data-view="automations" id="navAiAgents"><span class="nav-icon">◇</span>AI Agents</button>
+    <button class="nav-item" data-view="automations" id="navAutomation"><span class="nav-icon">ϟ</span>Automation Engine</button>
+
+    <div class="section-title">People</div>
+    <button class="nav-item" data-view="hr"><span class="nav-icon">♙</span>HR Operating System</button>
+    <button class="nav-item" data-view="directory"><span class="nav-icon">◎</span>Org Directory</button>
+
+    <div class="section-title">Money</div>
+    <button class="nav-item" data-view="finance" id="navFinance"><span class="nav-icon">$</span>Finance</button>
+    <button class="nav-item" data-view="sales" id="navSales"><span class="nav-icon">↗</span>Sales</button>
+    <button class="nav-item" data-view="procurement"><span class="nav-icon">🛒</span>Procurement</button>
+
+    <div class="section-title">Tech & Risk</div>
+    <button class="nav-item" data-view="it-security"><span class="nav-icon">⬡</span>IT & Security</button>
+    <button class="nav-item" data-view="compliance"><span class="nav-icon">◇</span>Compliance & AI Governance</button>
+    <button class="nav-item" data-view="legal"><span class="nav-icon">⚖</span>Legal</button>
+
+    <div class="section-title">Go-to-Market</div>
+    <button class="nav-item" data-view="marketing"><span class="nav-icon">△</span>Marketing</button>
+    <button class="nav-item" data-view="engineering"><span class="nav-icon">⌘</span>Engineering</button>
+    <button class="nav-item" data-view="customer-success"><span class="nav-icon">◉</span>Customer Success</button>
+
+    <div class="section-title">System</div>
+    <button class="nav-item" data-view="memory"><span class="nav-icon">◌</span>Organizational Memory</button>
+    <button class="nav-item" data-view="developer"><span class="nav-icon">&lt;/&gt;</span>Developer / API</button>
+    <button class="nav-item" data-view="differentiators"><span class="nav-icon">✣</span>What Makes Us Different</button>
+    <button class="nav-item" data-view="settings"><span class="nav-icon">⚙</span>Settings & RBAC</button>
+  </div>
+
+  <div class="sidebar-bottom">
+    <div class="company-info">
+      <strong id="companyName">Acme Corp</strong>
+      <span class="enterprise">ENTERPRISE</span>
+    </div>
+    <button class="logout" id="signOutBtn">↪ &nbsp; Sign out</button>
+  </div>
+</aside>
+
+<main class="main">
+  <header class="topbar">
+    <button class="mobile-menu" onclick="toggleSidebar()">☰</button>
+    <div class="page-heading">
+      <strong id="pageTitle">Executive Command Center</strong>
+      <span class="viewing" id="viewingBadge">Viewing as: Employee</span>
+    </div>
+    <div class="top-right">
+      <div class="search">🔍 <input type="text" id="globalSearch" placeholder="Search people, deals, issues…"><kbd>⌘K</kbd></div>
+      <button class="top-button" onclick="showView('notifications')" title="Notifications">♧<span class="notification-count" id="topNotifCount">0</span></button>
+      <button class="top-button" title="Profile" id="avatarBtn">C</button>
+    </div>
+  </header>
+
+  <div class="content">
+
+    <!-- ========== COMMAND CENTER ========== -->
+    <div class="view-section active" id="view-command-center">
+      <section class="welcome">
+        <div>
+          <h1 id="welcomeHeading">Good to see you.</h1>
+          <p>Here's everything happening across <span id="welcomeCompany">Acme Corp</span> right now — synthesized into one view.</p>
+        </div>
+        <div class="welcome-meta">
+          <div class="live-pill"><span></span> Systems live</div>
+        </div>
+      </section>
+
+      <section class="dashboard-grid">
+        <div class="card score-card">
+          <div class="card-title"><h3>◈ Founder Score</h3><span>Live</span></div>
+          <div class="score-area">
+            <div class="score-ring">
+              <svg width="140" height="140">
+                <defs>
+                  <linearGradient id="scoreGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stop-color="#3b82f6"/>
+                    <stop offset="100%" stop-color="#8b5cf6"/>
+                  </linearGradient>
+                </defs>
+                <circle class="ring-bg" cx="70" cy="70" r="53"></circle>
+                <circle class="ring-value" id="scoreRingCircle" cx="70" cy="70" r="53"></circle>
+              </svg>
+              <div class="score-number"><strong id="founderScore">71</strong><span>/ 100</span></div>
+            </div>
+            <div class="score-description">
+              <span class="score-status" id="scoreStatus">HEALTHY</span>
+              <p id="scoreBlurb">Company operating health is stable, with a few areas requiring attention.</p>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title"><h3>Department scores</h3><span>Real-time</span></div>
+          <div class="departments" id="departments"></div>
+        </div>
+        <div class="card alerts-card">
+          <div class="card-title"><h3>⚠ Critical alerts</h3><span id="alertsCount">0 active</span></div>
+          <div class="alerts" id="alerts"></div>
+        </div>
+      </section>
+
+      <section class="kpi-grid" id="kpis"></section>
+
+      <section class="lower-grid">
+        <div class="card">
+          <div class="card-title"><h3>✣ Today's top actions</h3><span>Prioritized</span></div>
+          <div id="actions"></div>
+        </div>
+        <div class="card">
+          <div class="card-title"><h3>Live Company Pulse</h3><span class="live-label">● LIVE</span></div>
+          <div id="activities"></div>
+        </div>
+      </section>
+
+      <section class="bottom-grid">
+        <div class="card">
+          <div class="card-title"><h3>✓ Daily wins</h3><span>Today</span></div>
+          <div id="wins"></div>
+        </div>
+        <div class="card">
+          <div class="card-title"><h3>⚠ Risk overview</h3><span>Details</span></div>
+          <div id="risks"></div>
+        </div>
+      </section>
+
+      <section class="ai-section">
+        <div class="card-title" style="margin-bottom:12px"><h3>AI Intelligence & Shadow AI Monitoring</h3><span>Updated just now</span></div>
+        <div class="ai-grid" id="aiMonitoring"></div>
+      </section>
+    </div>
+
+    <!-- ========== APPROVALS ========== -->
+    <div class="view-section" id="view-approvals">
+      <div class="view-header"><h2>✓ Approval Engine</h2></div>
+      <p class="view-sub">Submit requests. CEO can approve or reject. Auto-approval rules apply under threshold.</p>
+      <div class="card view-card">
+        <div class="card-title"><h3>New request</h3></div>
+        <form id="approvalForm">
+          <div class="form-row">
+            <div class="form-field"><label>Title</label><input type="text" id="approvalTitle" required placeholder="e.g. Conference travel"></div>
+            <div class="form-field"><label>Amount</label><input type="text" id="approvalAmount" placeholder="e.g. $1,200"></div>
+            <div class="form-field"><label>Category</label>
+              <select id="approvalCategory"><option>General</option><option>Travel</option><option>Software</option><option>Marketing</option><option>Equipment</option></select>
+            </div>
+          </div>
+          <div class="form-field" style="margin-bottom:12px"><label>Description</label><textarea id="approvalDescription" placeholder="Details for the approver"></textarea></div>
+          <button type="submit" class="btn btn-primary">Submit request</button>
+        </form>
+      </div>
+      <div class="card view-card">
+        <div class="card-title"><h3>Requests</h3><span id="approvalsCount"></span></div>
+        <div id="approvalsList"></div>
+      </div>
+    </div>
+
+    <!-- ========== NOTIFICATIONS ========== -->
+    <div class="view-section" id="view-notifications">
+      <div class="view-header">
+        <h2>♧ Notification Center</h2>
+        <button class="btn btn-primary btn-small" id="markAllReadBtn">Mark all read</button>
+      </div>
+      <p class="view-sub">Everything WatchTower has flagged for your company.</p>
+      <div class="card view-card"><div id="notificationsList"></div></div>
+    </div>
+
+    <!-- ========== ISSUES (NEW) ========== -->
+    <div class="view-section" id="view-issues">
+      <div class="view-header"><h2>⚑ Issue Tracker</h2></div>
+      <p class="view-sub">Any team can raise issues. Managers and CEO resolve them. Scoped by role and department.</p>
+
+      <div class="card view-card" id="issueRaiseCard">
+        <div class="card-title"><h3>Raise an issue</h3></div>
+        <form id="issueForm">
+          <div class="form-row">
+            <div class="form-field"><label>Title</label><input type="text" id="issueTitle" required placeholder="Brief summary"></div>
+            <div class="form-field"><label>Department</label>
+              <select id="issueDepartment">
+                <option>Engineering</option><option>Product</option><option>Design</option>
+                <option>Marketing</option><option>Sales</option><option>Legal</option>
+                <option>Finance</option><option>HR</option><option>IT</option>
+                <option>Customer Success</option><option>Operations</option>
+              </select>
+            </div>
+            <div class="form-field"><label>Severity</label>
+              <select id="issueSeverity"><option value="low">Low</option><option value="medium">Medium</option><option value="high">High</option><option value="critical">Critical</option></select>
+            </div>
+          </div>
+          <div class="form-field" style="margin-bottom:12px"><label>Description</label><textarea id="issueDescription" required placeholder="What happened, impact, and what you need"></textarea></div>
+          <button type="submit" class="btn btn-primary">Submit issue</button>
+        </form>
+      </div>
+
+      <div class="issue-filters" id="issueFilters">
+        <button class="filter-chip active" data-filter="all">All</button>
+        <button class="filter-chip" data-filter="open">Open</button>
+        <button class="filter-chip" data-filter="in_progress">In progress</button>
+        <button class="filter-chip" data-filter="resolved">Resolved</button>
+      </div>
+
+      <div class="card view-card">
+        <div class="card-title"><h3>Issues</h3><span id="issuesCount"></span></div>
+        <div id="issuesList"></div>
+      </div>
+    </div>
+
+    <!-- ========== HR ========== -->
+    <div class="view-section" id="view-hr">
+      <div class="view-header"><h2>♙ HR Operating System</h2></div>
+      <p class="view-sub">Headcount, risk flags, and people operations.</p>
+      <div class="mod-kpis" id="hrKpis"></div>
+      <div class="card view-card" id="hrAddCard">
+        <div class="card-title"><h3>Add employee</h3></div>
+        <form id="employeeForm">
+          <div class="form-row">
+            <div class="form-field"><label>Name</label><input type="text" id="empName" required></div>
+            <div class="form-field"><label>Title</label><input type="text" id="empTitle" placeholder="e.g. Senior Front-end Engineer"></div>
+            <div class="form-field"><label>Department</label><input type="text" id="empDepartment"></div>
+            <div class="form-field"><label>Email</label><input type="email" id="empEmail"></div>
+          </div>
+          <button type="submit" class="btn btn-primary">Add employee</button>
+        </form>
+      </div>
+      <div class="card view-card">
+        <div class="card-title"><h3>Team directory</h3></div>
+        <div id="employeesList"></div>
+      </div>
+    </div>
+
+    <!-- ========== DIRECTORY ========== -->
+    <div class="view-section" id="view-directory">
+      <div class="view-header"><h2>◎ Org Directory</h2></div>
+      <p class="view-sub">Everyone at a glance — roles, departments, risk signals.</p>
+      <div class="card view-card"><div id="directoryList"></div></div>
+    </div>
+
+    <!-- ========== FINANCE ========== -->
+    <div class="view-section" id="view-finance">
+      <div class="view-header"><h2>$ Finance</h2></div>
+      <p class="view-sub">Income, expenses, and running totals. CEO can write; managers can view.</p>
+      <div class="finance-summary" id="financeSummary"></div>
+      <div class="card view-card" id="financeAddCard">
+        <div class="card-title"><h3>Add transaction</h3></div>
+        <form id="transactionForm">
+          <div class="form-row">
+            <div class="form-field"><label>Description</label><input type="text" id="txDescription" required></div>
+            <div class="form-field"><label>Amount</label><input type="number" step="0.01" id="txAmount" required></div>
+            <div class="form-field"><label>Type</label><select id="txType"><option value="income">Income</option><option value="expense">Expense</option></select></div>
+            <div class="form-field"><label>Date</label><input type="date" id="txDate"></div>
+          </div>
+          <button type="submit" class="btn btn-primary">Add transaction</button>
+        </form>
+      </div>
+      <div class="card view-card">
+        <div class="card-title"><h3>Transactions</h3></div>
+        <div id="transactionsList"></div>
+      </div>
+    </div>
+
+    <!-- ========== SALES ========== -->
+    <div class="view-section" id="view-sales">
+      <div class="view-header"><h2>↗ Sales</h2></div>
+      <p class="view-sub">Pipeline health, stage breakdown, and deal management.</p>
+      <div class="pipeline-stages" id="salesPipeline"></div>
+      <div class="card view-card" id="salesAddCard">
+        <div class="card-title"><h3>Add deal</h3></div>
+        <form id="dealForm">
+          <div class="form-row">
+            <div class="form-field"><label>Deal name</label><input type="text" id="dealName" required></div>
+            <div class="form-field"><label>Value ($)</label><input type="number" step="0.01" id="dealValue" required></div>
+            <div class="form-field"><label>Stage</label>
+              <select id="dealStage">
+                <option value="prospecting">Prospecting</option>
+                <option value="negotiation">Negotiation</option>
+                <option value="closed_won">Closed won</option>
+                <option value="closed_lost">Closed lost</option>
+              </select>
+            </div>
+            <div class="form-field"><label>Owner</label><input type="text" id="dealOwner"></div>
+            <div class="form-field"><label>Close date</label><input type="date" id="dealCloseDate"></div>
+          </div>
+          <button type="submit" class="btn btn-primary">Add deal</button>
+        </form>
+      </div>
+      <div class="card view-card">
+        <div class="card-title"><h3>Pipeline</h3></div>
+        <div id="dealsList"></div>
+      </div>
+    </div>
+
+    <!-- ========== PROCUREMENT ========== -->
+    <div class="view-section" id="view-procurement">
+      <div class="view-header"><h2>🛒 Procurement</h2></div>
+      <p class="view-sub">Vendor requests and purchase approvals. Auto-approval under threshold.</p>
+      <div class="card view-card">
+        <div class="card-title"><h3>New request</h3></div>
+        <form id="procurementForm">
+          <div class="form-row">
+            <div class="form-field"><label>Vendor</label><input type="text" id="procVendor" required></div>
+            <div class="form-field"><label>Item</label><input type="text" id="procItem" required></div>
+            <div class="form-field"><label>Amount ($)</label><input type="number" step="0.01" id="procAmount" required></div>
+          </div>
+          <button type="submit" class="btn btn-primary">Submit request</button>
+        </form>
+      </div>
+      <div class="card view-card">
+        <div class="card-title"><h3>Requests</h3></div>
+        <div id="procurementList"></div>
+      </div>
+    </div>
+
+    <!-- ========== AUTOMATIONS ========== -->
+    <div class="view-section" id="view-automations">
+      <div class="view-header"><h2>ϟ AI Agents & Automation Engine</h2></div>
+      <p class="view-sub">Rules that act automatically — auto-approving under threshold, flagging risk in real time.</p>
+      <div class="mod-kpis" id="autoKpis"></div>
+      <div class="card view-card" id="automationAddCard">
+        <div class="card-title"><h3>New rule</h3></div>
+        <form id="automationForm">
+          <div class="form-row">
+            <div class="form-field"><label>Rule name</label><input type="text" id="autoName" required placeholder="e.g. Auto-approve small expenses"></div>
+            <div class="form-field"><label>Type</label>
+              <select id="autoType">
+                <option value="auto_approve_approvals">Auto-approve requests under $X</option>
+                <option value="auto_approve_procurement">Auto-approve procurement under $X</option>
+                <option value="auto_notify_high_risk">Notify on high-risk employee</option>
+              </select>
+            </div>
+            <div class="form-field" id="autoThresholdField"><label>Threshold ($)</label><input type="number" step="0.01" id="autoThreshold"></div>
+          </div>
+          <button type="submit" class="btn btn-primary">Create rule</button>
+        </form>
+      </div>
+      <div class="card view-card">
+        <div class="card-title"><h3>Active rules</h3></div>
+        <div id="automationsList"></div>
+      </div>
+    </div>
+
+    <!-- ========== EXECUTIVE / OKRs ========== -->
+    <div class="view-section" id="view-executive">
+      <div class="view-header"><h2>◎ Executive Office & OKRs</h2></div>
+      <p class="view-sub">Company-level objectives, key results, and leadership decisions.</p>
+      <div class="mod-kpis">
+        <div class="mod-kpi"><div class="label">OKRs on track</div><div class="value">7 / 9</div><div class="delta delta-up">+2 this quarter</div></div>
+        <div class="mod-kpi"><div class="label">Board readiness</div><div class="value">92%</div><div class="delta delta-up">Materials locked</div></div>
+        <div class="mod-kpi"><div class="label">Open decisions</div><div class="value">4</div><div class="delta">Need CEO input</div></div>
+        <div class="mod-kpi"><div class="label">Strategy cadence</div><div class="value">Weekly</div><div class="delta">Next: Thu 10:00</div></div>
+      </div>
+      <div class="placeholder-grid">
+        <div class="feature-card">
+          <div class="fc-icon" style="background:var(--blue-dim);color:#93c5fd">◎</div>
+          <h4>Q3 North Star</h4>
+          <p>Reach $4.2M ARR and 98% net retention while keeping burn under $180k/mo.</p>
+          <div class="fc-meta">Progress: 74% · Owner: CEO</div>
+        </div>
+        <div class="feature-card">
+          <div class="fc-icon" style="background:var(--purple-dim);color:#c4b5fd">📊</div>
+          <h4>Key Results board</h4>
+          <p>9 active KRs across Product, GTM, and Ops. 2 at risk — Engineering velocity & enterprise pipeline.</p>
+          <div class="fc-meta">Updated 2h ago</div>
+        </div>
+        <div class="feature-card">
+          <div class="fc-icon" style="background:var(--green-dim);color:#86efac">✓</div>
+          <h4>Decision log</h4>
+          <p>Approved expansion into DACH. Deferred hardware partnership to Q4. Hired Head of CS.</p>
+          <div class="fc-meta">Last decision: yesterday</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== IT & SECURITY ========== -->
+    <div class="view-section" id="view-it-security">
+      <div class="view-header"><h2>⬡ IT & Security</h2></div>
+      <p class="view-sub">Access, incidents, device posture, and security score.</p>
+      <div class="mod-kpis">
+        <div class="mod-kpi"><div class="label">Security score</div><div class="value">86</div><div class="delta delta-up">+3 this week</div></div>
+        <div class="mod-kpi"><div class="label">Open incidents</div><div class="value">2</div><div class="delta delta-down">1 critical</div></div>
+        <div class="mod-kpi"><div class="label">MFA coverage</div><div class="value">97%</div><div class="delta">3 users pending</div></div>
+        <div class="mod-kpi"><div class="label">Devices compliant</div><div class="value">142 / 148</div><div class="delta">4 offline</div></div>
+      </div>
+      <div class="placeholder-grid">
+        <div class="feature-card">
+          <div class="fc-icon" style="background:var(--red-dim);color:#fca5a5">⚠</div>
+          <h4>Active incident: phishing wave</h4>
+          <p>3 users reported suspicious emails. SOC is investigating. No confirmed compromise yet.</p>
+          <div class="fc-meta">Severity: High · Opened 4h ago</div>
+        </div>
+        <div class="feature-card">
+          <div class="fc-icon" style="background:var(--blue-dim);color:#93c5fd">🔑</div>
+          <h4>Access reviews</h4>
+          <p>Quarterly access review due in 12 days. 18 privileged roles to re-certify.</p>
+          <div class="fc-meta">Owner: IT Manager</div>
+        </div>
+        <div class="feature-card">
+          <div class="fc-icon" style="background:var(--green-dim);color:#86efac">🛡</div>
+          <h4>Endpoint health</h4>
+          <p>EDR agents healthy on 98% of devices. 2 macOS machines need agent update.</p>
+          <div class="fc-meta">Last scan: 22 min ago</div>
+        </div>
+      </div>
+      <div class="card view-card" style="margin-top:16px">
+        <div class="card-title"><h3>Raise security issue</h3></div>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:12px">Goes into the global Issue Tracker with department = IT.</p>
+        <button class="btn btn-primary btn-small" onclick="prefillIssue('IT','Security concern')">Raise IT / Security issue</button>
+      </div>
+    </div>
+
+    <!-- ========== COMPLIANCE ========== -->
+    <div class="view-section" id="view-compliance">
+      <div class="view-header"><h2>◇ Compliance & AI Governance</h2></div>
+      <p class="view-sub">Policies, audits, model usage, and shadow AI detection.</p>
+      <div class="mod-kpis">
+        <div class="mod-kpi"><div class="label">Policy adherence</div><div class="value">94%</div><div class="delta delta-up">+1%</div></div>
+        <div class="mod-kpi"><div class="label">Shadow AI tools</div><div class="value">7</div><div class="delta">Under review</div></div>
+        <div class="mod-kpi"><div class="label">Audit readiness</div><div class="value">88%</div><div class="delta">SOC2 in 45d</div></div>
+        <div class="mod-kpi"><div class="label">Data retention OK</div><div class="value">100%</div><div class="delta">All regions</div></div>
+      </div>
+      <div class="placeholder-grid">
+        <div class="feature-card">
+          <div class="fc-icon" style="background:var(--purple-dim);color:#c4b5fd">◇</div>
+          <h4>AI model inventory</h4>
+          <p>12 approved models. 3 pending review (Claude-3, custom fine-tune, internal RAG).</p>
+          <div class="fc-meta">Governance board: weekly</div>
+        </div>
+        <div class="feature-card">
+          <div class="fc-icon" style="background:var(--yellow-dim);color:#fde047">📋</div>
+          <h4>Upcoming audits</h4>
+          <p>SOC 2 Type II evidence freeze in 45 days. GDPR DPIA for EU product surface in 3 weeks.</p>
+          <div class="fc-meta">Owners: Legal + Compliance</div>
+        </div>
+        <div class="feature-card">
+          <div class="fc-icon" style="background:var(--blue-dim);color:#93c5fd">🔍</div>
+          <h4>Shadow AI monitor</h4>
+          <p>Detected 7 unapproved AI tools in browser traffic. 2 already blocked via CASB.</p>
+          <div class="fc-meta">Last detection: 1h ago</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== LEGAL ========== -->
+    <div class="view-section" id="view-legal">
+      <div class="view-header"><h2>⚖ Legal</h2></div>
+      <p class="view-sub">Contracts, risk, and open matters. Raise issues that managers and Legal can resolve.</p>
+      <div class="mod-kpis">
+        <div class="mod-kpi"><div class="label">Open matters</div><div class="value">11</div><div class="delta">3 high priority</div></div>
+        <div class="mod-kpi"><div class="label">Contracts in review</div><div class="value">8</div><div class="delta">Avg 4.2 days</div></div>
+        <div class="mod-kpi"><div class="label">NDAs signed (30d)</div><div class="value">24</div><div class="delta delta-up">+6 vs prior</div></div>
+        <div class="mod-kpi"><div class="label">Risk score</div><div class="value">Low</div><div class="delta">Stable</div></div>
+      </div>
+      <div class="placeholder-grid">
+        <div class="feature-card">
+          <div class="fc-icon" style="background:var(--blue-dim);color:#93c5fd">📄</div>
+          <h4>Enterprise MSA — Acme × Northwind</h4>
+          <p>Negotiation on liability cap and data processing addendum. Legal + Sales aligned.</p>
+          <div class="fc-meta">Due: 5 days · Owner: GC</div>
+        </div>
+        <div class="feature-card">
+          <div class="fc-icon" style="background:var(--yellow-dim);color:#fde047">⚠</div>
+          <h4>IP disclosure request</h4>
+          <p>Partner asked for limited source access. Under review with Engineering and Security.</p>
+          <div class="fc-meta">Severity: Medium</div>
+        </div>
+        <div class="feature-card">
+          <div class="fc-icon" style="background:var(--green-dim);color:#86efac">✓</div>
+          <h4>Policy library</h4>
+          <p>Privacy, Acceptable Use, and AI Usage policies refreshed this month. All staff acknowledged.</p>
+          <div class="fc-meta">100% acknowledgment</div>
+        </div>
+      </div>
+      <div class="card view-card" style="margin-top:16px">
+        <div class="card-title"><h3>Raise legal issue</h3></div>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:12px">Creates a tracked issue with department = Legal for managers to address.</p>
+        <button class="btn btn-primary btn-small" onclick="prefillIssue('Legal','Legal matter')">Raise Legal issue</button>
+      </div>
+    </div>
+
+    <!-- ========== MARKETING ========== -->
+    <div class="view-section" id="view-marketing">
+      <div class="view-header"><h2>△ Marketing</h2></div>
+      <p class="view-sub">Campaign performance, pipeline contribution, and brand health.</p>
+      <div class="mod-kpis">
+        <div class="mod-kpi"><div class="label">MQLs (30d)</div><div class="value">184</div><div class="delta delta-up">+22%</div></div>
+        <div class="mod-kpi"><div class="label">Pipeline from marketing</div><div class="value">$1.2M</div><div class="delta delta-up">+18%</div></div>
+        <div class="mod-kpi"><div class="label">CAC</div><div class="value">$420</div><div class="delta delta-down">−8%</div></div>
+        <div class="mod-kpi"><div class="label">Campaign ROI</div><div class="value">3.4×</div><div class="delta">Blended</div></div>
+      </div>
+      <div class="placeholder-grid">
+        <div class="feature-card">
+          <div class="fc-icon" style="background:var(--purple-dim);color:#c4b5fd">△</div>
+          <h4>Product launch — WatchTower 3.0</h4>
+          <p>Launch in 18 days. Landing page live, waitlist at 2.1k. Webinar series scheduled.</p>
+          <div class="fc-meta">Owner: CMO · Status: On track</div>
+        </div>
+        <div class="feature-card">
+          <div class="fc-icon" style="background:var(--blue-dim);color:#93c5fd">📈</div>
+          <h4>Paid acquisition</h4>
+          <p>LinkedIn + Google active. CTR 2.8%. Optimizing toward demo requests over form fills.</p>
+          <div class="fc-meta">Budget used: 61% of monthly</div>
+        </div>
+        <div class="feature-card">
+          <div class="fc-icon" style="background:var(--green-dim);color:#86efac">🎯</div>
+          <h4>Content engine</h4>
+          <p>4 case studies shipped this month. Blog traffic +34% MoM. SEO ranking for “command center software” improved.</p>
+          <div class="fc-meta">Next: customer story series</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== ENGINEERING ========== -->
+    <div class="view-section" id="view-engineering">
+      <div class="view-header"><h2>⌘ Engineering</h2></div>
+      <p class="view-sub">Velocity, reliability, and delivery health across front-end, back-end, and platform.</p>
+      <div class="mod-kpis">
+        <div class="mod-kpi"><div class="label">Sprint velocity</div><div class="value">42 pts</div><div class="delta delta-up">+6 vs last</div></div>
+        <div class="mod-kpi"><div class="label">Deploy frequency</div><div class="value">14 / wk</div><div class="delta">Healthy</div></div>
+        <div class="mod-kpi"><div class="label">MTTR</div><div class="value">38 min</div><div class="delta delta-down">−12 min</div></div>
+        <div class="mod-kpi"><div class="label">Open bugs (P0/P1)</div><div class="value">3</div><div class="delta">2 in progress</div></div>
+      </div>
+      <div class="placeholder-grid">
+        <div class="feature-card">
+          <div class="fc-icon" style="background:var(--blue-dim);color:#93c5fd">⌘</div>
+          <h4>Front-end platform</h4>
+          <p>Design system v2 rolling out. 68% of surfaces migrated. Performance budget enforced on all new pages.</p>
+          <div class="fc-meta">Leads: FE · 4 engineers</div>
+        </div>
+        <div class="feature-card">
+          <div class="fc-icon" style="background:var(--purple-dim);color:#c4b5fd">{ }</div>
+          <h4>Back-end & APIs</h4>
+          <p>Event-driven pipeline for automations stable. RLS policies audited. Latency p95 under 120ms.</p>
+          <div class="fc-meta">Leads: BE · 5 engineers</div>
+        </div>
+        <div class="feature-card">
+          <div class="fc-icon" style="background:var(--green-dim);color:#86efac">🧪</div>
+          <h4>QA & Automation</h4>
+          <p>Manual testers covering critical paths. Automation suite at 72% of regression. Flake rate 1.4%.</p>
+          <div class="fc-meta">Manual + Automation QA</div>
+        </div>
+        <div class="feature-card">
+          <div class="fc-icon" style="background:var(--yellow-dim);color:#fde047">🎨</div>
+          <h4>UI/UX design</h4>
+          <p>New Command Center density study complete. Accessibility pass for WCAG 2.1 AA in progress.</p>
+          <div class="fc-meta">2 designers · Design ops</div>
+        </div>
+      </div>
+      <div class="card view-card" style="margin-top:16px">
+        <div class="card-title"><h3>Raise engineering issue</h3></div>
+        <button class="btn btn-primary btn-small" onclick="prefillIssue('Engineering','Engineering issue')">Raise Engineering issue</button>
+      </div>
+    </div>
+
+    <!-- ========== CUSTOMER SUCCESS ========== -->
+    <div class="view-section" id="view-customer-success">
+      <div class="view-header"><h2>◉ Customer Success</h2></div>
+      <p class="view-sub">Health scores, renewals, and expansion signals.</p>
+      <div class="mod-kpis">
+        <div class="mod-kpi"><div class="label">NRR</div><div class="value">118%</div><div class="delta delta-up">+4pp</div></div>
+        <div class="mod-kpi"><div class="label">At-risk accounts</div><div class="value">6</div><div class="delta">Playbooks active</div></div>
+        <div class="mod-kpi"><div class="label">Renewals (90d)</div><div class="value">$890k</div><div class="delta">92% forecast</div></div>
+        <div class="mod-kpi"><div class="label">CSAT</div><div class="value">4.7</div><div class="delta">n=214</div></div>
+      </div>
+      <div class="placeholder-grid">
+        <div class="feature-card">
+          <div class="fc-icon" style="background:var(--red-dim);color:#fca5a5">◉</div>
+          <h4>At-risk: Contoso Ltd</h4>
+          <p>Usage down 40% after champion left. QBR scheduled. Expansion paused until health recovers.</p>
+          <div class="fc-meta">Owner: CSM · Severity: High</div>
+        </div>
+        <div class="feature-card">
+          <div class="fc-icon" style="background:var(--green-dim);color:#86efac">↑</div>
+          <h4>Expansion pipeline</h4>
+          <p>3 accounts in multi-product discussion. Combined potential $420k ARR.</p>
+          <div class="fc-meta">Next steps this week</div>
+        </div>
+        <div class="feature-card">
+          <div class="fc-icon" style="background:var(--blue-dim);color:#93c5fd">📚</div>
+          <h4>Onboarding cohort</h4>
+          <p>12 accounts in first 30 days. Time-to-value median 9 days (target 14).</p>
+          <div class="fc-meta">Playbook v3 live</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== ORGANIZATIONAL MEMORY ========== -->
+    <div class="view-section" id="view-memory">
+      <div class="view-header"><h2>◌ Organizational Memory</h2></div>
+      <p class="view-sub">Decisions, context, and institutional knowledge that compounds over time.</p>
+      <div class="card view-card">
+        <div class="timeline">
+          <div class="timeline-item"><strong>Approved DACH expansion</strong><span>CEO · 2 days ago · Linked to OKR: Geographic growth</span></div>
+          <div class="timeline-item"><strong>Paused hardware partnership</strong><span>Product + Legal · 5 days ago · Revisit Q4</span></div>
+          <div class="timeline-item"><strong>Hired Head of Customer Success</strong><span>HR · 1 week ago · Starts Oct 1</span></div>
+          <div class="timeline-item"><strong>Security score target raised to 90</strong><span>IT · 2 weeks ago · From 85</span></div>
+          <div class="timeline-item"><strong>AI usage policy v2 published</strong><span>Compliance · 3 weeks ago · 100% ack</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== DEVELOPER / API ========== -->
+    <div class="view-section" id="view-developer">
+      <div class="view-header"><h2>&lt;/&gt; Developer / API</h2></div>
+      <p class="view-sub">Integrations, webhooks, and developer experience.</p>
+      <div class="mod-kpis">
+        <div class="mod-kpi"><div class="label">API uptime (30d)</div><div class="value">99.97%</div><div class="delta">SLA met</div></div>
+        <div class="mod-kpi"><div class="label">Active keys</div><div class="value">28</div><div class="delta">4 revoked</div></div>
+        <div class="mod-kpi"><div class="label">Webhook success</div><div class="value">99.2%</div><div class="delta">Last fail: 2d</div></div>
+        <div class="mod-kpi"><div class="label">SDK downloads</div><div class="value">1.4k</div><div class="delta">This month</div></div>
+      </div>
+      <div class="placeholder-grid">
+        <div class="feature-card">
+          <div class="fc-icon" style="background:var(--blue-dim);color:#93c5fd">{ }</div>
+          <h4>REST + GraphQL</h4>
+          <p>Full CRUD on core entities. Rate limit 120 req/min per key. OpenAPI 3.1 published.</p>
+          <div class="fc-meta">docs.watchtower.app</div>
+        </div>
+        <div class="feature-card">
+          <div class="fc-icon" style="background:var(--purple-dim);color:#c4b5fd">⚡</div>
+          <h4>Event webhooks</h4>
+          <p>approval.created, issue.resolved, employee.risk_changed, deal.stage_changed, and more.</p>
+          <div class="fc-meta">Signed payloads · Retry policy</div>
+        </div>
+        <div class="feature-card">
+          <div class="fc-icon" style="background:var(--green-dim);color:#86efac">🔌</div>
+          <h4>Integrations</h4>
+          <p>Slack, Notion, Linear, HubSpot, and custom via Zapier/Make. Native Salesforce beta.</p>
+          <div class="fc-meta">Request access in Settings</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== DIFFERENTIATORS ========== -->
+    <div class="view-section" id="view-differentiators">
+      <div class="view-header"><h2>✣ What Makes Us Different</h2></div>
+      <p class="view-sub">Why WatchTower is not another dashboard — it's an operating system for the company.</p>
+      <div class="placeholder-grid">
+        <div class="feature-card">
+          <div class="fc-icon" style="background:var(--blue-dim);color:#93c5fd">◈</div>
+          <h4>Founder Score</h4>
+          <p>One number that compresses company health across departments, risk, and delivery — not vanity metrics.</p>
+        </div>
+        <div class="feature-card">
+          <div class="fc-icon" style="background:var(--purple-dim);color:#c4b5fd">ϟ</div>
+          <h4>Trigger-driven automation</h4>
+          <p>Real database triggers auto-approve under threshold and flag high-risk employees — not batch jobs that lag.</p>
+        </div>
+        <div class="feature-card">
+          <div class="fc-icon" style="background:var(--green-dim);color:#86efac">⚑</div>
+          <h4>Issue Tracker with role scope</h4>
+          <p>Every team raises issues; managers resolve within department; CEO sees everything. No ticket black hole.</p>
+        </div>
+        <div class="feature-card">
+          <div class="fc-icon" style="background:var(--yellow-dim);color:#fde047">◇</div>
+          <h4>Shadow AI monitoring</h4>
+          <p>Detects unapproved AI tools in the wild so compliance isn't a slide deck — it's continuous.</p>
+        </div>
+        <div class="feature-card">
+          <div class="fc-icon" style="background:var(--red-dim);color:#fca5a5">⚖</div>
+          <h4>RBAC that matches reality</h4>
+          <p>CEO / Manager / Employee with department scoping — not a generic admin switch.</p>
+        </div>
+        <div class="feature-card">
+          <div class="fc-icon" style="background:var(--blue-dim);color:#93c5fd">◌</div>
+          <h4>Organizational Memory</h4>
+          <p>Decisions and context compound so the company doesn't re-debate the same tradeoffs every quarter.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ========== SETTINGS ========== -->
+    <div class="view-section" id="view-settings">
+      <div class="view-header"><h2>⚙ Settings & RBAC</h2></div>
+      <p class="view-sub">Roles, departments, and access. Promote users to manager with department assignment in the backend.</p>
+      <div class="card view-card">
+        <div class="card-title"><h3>Your profile</h3></div>
+        <div id="settingsProfile" style="font-size:13px;line-height:1.8;color:var(--muted)"></div>
+      </div>
+      <div class="placeholder-grid" style="margin-top:16px">
+        <div class="feature-card">
+          <div class="fc-icon" style="background:var(--blue-dim);color:#93c5fd">👤</div>
+          <h4>Roles</h4>
+          <p><strong style="color:var(--text)">CEO</strong> — full access, approve, write finance/sales, manage automations.<br>
+          <strong style="color:var(--text)">Manager</strong> — department-scoped HR write, view finance/sales/automations, resolve issues.<br>
+          <strong style="color:var(--text)">Employee</strong> — own requests, raise issues, no finance/sales.</p>
+        </div>
+        <div class="feature-card">
+          <div class="fc-icon" style="background:var(--purple-dim);color:#c4b5fd">🏢</div>
+          <h4>Promote to manager</h4>
+          <p>Run in Supabase SQL editor:<br>
+          <code style="font-size:11px;color:#93c5fd">update profiles set role = 'manager', department = 'Engineering' where id = (select id from auth.users where email = '…');</code></p>
+        </div>
+      </div>
+    </div>
+
+    <footer class="footer">
+      <span>WatchTower Enterprise</span>
+      <span id="syncTime">Last synchronized just now</span>
+      <span class="system-status"><span></span> All systems operational</span>
+    </footer>
+  </div>
+</main>
 </div>
 
 <script>
+/* =========================================================
+   SUPABASE — replace with your project if needed
+========================================================= */
+/* =========================================================
+   SUPABASE CONFIG — set these from your Supabase project
+   Settings → API → Project URL + anon public key
+   On Vercel: you can also inject via build, or leave here.
+   ========================================================= */
 const SUPABASE_URL = "https://kjmvhrwxnkcsmbmymqvp.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_NJuM7_9Se9sXZYZ3J0Gsnw_imtHI_IK";
-const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-let USER=null, PROFILE=null, CID=null, ROLE="employee", AGENT=null, mode="signin";
-const isCEO=()=>ROLE==="ceo", isMgr=()=>ROLE==="ceo"||ROLE==="manager";
+/* Issues use real Supabase table `issues` (see schema.sql) */
+/* =========================================================
+   ROLE BASED AUTH
+========================================================= */
 
-const AGENTS = {
-  hr:{k:"hr",n:"HR Agent",i:"♙",b:"Headcount, risk flags, hiring signals from directory data."},
-  sales:{k:"sales",n:"Sales Agent",i:"↗",b:"Pipeline stages, stalled deals, forecast pressure."},
-  marketing:{k:"marketing",n:"Marketing Agent",i:"△",b:"Campaign readiness, MQL quality, launch cadence."},
-  finance:{k:"finance",n:"Finance Agent",i:"$",b:"Burn, anomalies, approval thresholds."},
-  ops:{k:"ops",n:"Operations Agent",i:"⚙",b:"Cross-team blockers and process bottlenecks."},
-  it:{k:"it",n:"IT Agent",i:"⬡",b:"Security posture, access, incident signals."},
-  lead:{k:"lead",n:"Leadership Agent",i:"◎",b:"OKR synthesis and executive narrative."}
-};
+let selectedLoginRole = null;
 
-const RULES = [
-  {l:"Email",s:"medium",re:/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g,m:()=>"[EMAIL]"},
-  {l:"SSN",s:"critical",re:/\b\d{3}-\d{2}-\d{4}\b/g,m:()=>"[SSN]"},
-  {l:"Card",s:"critical",re:/\b(?:\d{4}[-\s]?){3}\d{4}\b/g,m:()=>"[CARD]"},
-  {l:"API/secret",s:"critical",re:/\b(?:sk-|api[_-]?key|secret|Bearer\s+)[A-Za-z0-9_\-]{16,}\b/gi,m:()=>"[SECRET]"},
-  {l:"AWS key",s:"critical",re:/\bAKIA[0-9A-Z]{16}\b/g,m:()=>"[AWS]"},
-  {l:"Salary",s:"high",re:/\b(?:salary|compensation)\b/gi,m:()=>"[COMP]"},
-  {l:"Confidential",s:"high",re:/\b(?:CONFIDENTIAL|INTERNAL ONLY|DO NOT FORWARD)\b/gi,m:()=>"[CLASSIFIED]"},
-  {l:"Internal path",s:"high",re:/\b(?:\/home\/|\/Users\/|password\s*=)/gi,m:()=>"[PATH]"}
-];
+const authLoading = document.getElementById("authLoading");
+const authScreen = document.getElementById("authScreen");
+const appRoot = document.getElementById("appRoot");
 
-function scan(t){
-  const f=[]; let m=t;
-  for(const r of RULES){ const x=t.match(r.re); if(x){ f.push({l:r.l,s:r.s,c:x.length}); m=m.replace(r.re,r.m);} }
-  let a="allowed"; if(f.some(x=>x.s==="critical")) a="blocked"; else if(f.length) a="masked";
-  return {f,m,a};
+const authForm = document.getElementById("authForm");
+const authError = document.getElementById("authError");
+const authSubmit = document.getElementById("authSubmit");
+
+const roleSelection = document.getElementById("roleSelection");
+const roleLogin = document.getElementById("roleLogin");
+
+const selectedRoleIcon = document.getElementById("selectedRoleIcon");
+const selectedRoleTitle = document.getElementById("selectedRoleTitle");
+const selectedRoleSub = document.getElementById("selectedRoleSub");
+
+
+/* ---------------------------------------------------------
+   SELECT ROLE
+--------------------------------------------------------- */
+
+function selectLoginRole(role) {
+
+  selectedLoginRole = role;
+
+  roleSelection.classList.add("hidden");
+  roleLogin.classList.remove("hidden");
+
+  const roleData = {
+
+    ceo: {
+      icon: "C",
+      title: "CEO Login",
+      subtitle: "Sign in to your executive command center"
+    },
+
+    manager: {
+      icon: "M",
+      title: "Manager Login",
+      subtitle: "Sign in to your department workspace"
+    },
+
+    employee: {
+      icon: "E",
+      title: "Employee Login",
+      subtitle: "Sign in to your employee workspace"
+    }
+
+  };
+
+  const data = roleData[role];
+
+  selectedRoleIcon.innerText = data.icon;
+  selectedRoleTitle.innerText = data.title;
+  selectedRoleSub.innerText = data.subtitle;
+
+  setAuthError("");
+
+  authForm.reset();
+
+  document.getElementById("authEmail").focus();
 }
-function esc(s){ return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])); }
-function showErr(m){ const e=document.getElementById("err"); if(!m){e.style.display="none";return;} e.style.display="block"; e.textContent=m; }
 
-document.getElementById("toggleAuth").onclick=()=>{
-  mode=mode==="signin"?"signup":"signin";
-  document.getElementById("authTitle").textContent=mode==="signup"?"Sign up":"Sign in";
-  document.getElementById("authBtn").textContent=mode==="signup"?"Create account":"Sign in";
-  showErr(null);
-};
-document.getElementById("authForm").onsubmit=async e=>{
-  e.preventDefault(); showErr(null);
-  const email=document.getElementById("email").value.trim(), password=document.getElementById("password").value;
-  try{
-    if(mode==="signup"){ const {error}=await sb.auth.signUp({email,password}); if(error) throw error; showErr("Account created. Sign in, then link company via SQL."); }
-    else { const {error}=await sb.auth.signInWithPassword({email,password}); if(error) throw error; await boot(); }
-  }catch(x){ showErr(x.message); }
-};
-document.getElementById("out").onclick=async()=>{ await sb.auth.signOut(); document.getElementById("app").classList.add("hidden"); document.getElementById("auth").classList.remove("hidden"); };
 
-async function boot(){
-  const {data:{user}}=await sb.auth.getUser(); if(!user) return;
-  USER=user;
-  const {data:p,error}=await sb.from("profiles").select("*,companies(*)").eq("id",user.id).single();
-  if(error||!p?.company_id){ showErr("Link profile to company: update profiles set company_id=..., role='ceo' where id=..."); return; }
-  PROFILE=p; CID=p.company_id; ROLE=p.role||"employee";
-  document.getElementById("auth").classList.add("hidden");
-  document.getElementById("app").classList.remove("hidden");
-  document.getElementById("roleChip").textContent=ROLE.toUpperCase();
-  document.getElementById("welcome").textContent=`Welcome, ${ROLE==="ceo"?"CEO":ROLE}`;
-  document.getElementById("fscore").textContent=p.companies?.founder_score??71;
-  document.getElementById("navFin").style.display=isMgr()?"block":"none";
-  document.getElementById("navSales").style.display=isMgr()?"block":"none";
-  document.getElementById("hrAdd").style.display=isMgr()?"block":"none";
-  document.getElementById("fadd").style.display=isCEO()?"block":"none";
-  document.getElementById("sadd").style.display=isCEO()?"block":"none";
-  go("command-center");
+/* ---------------------------------------------------------
+   BACK TO ROLE SELECTION
+--------------------------------------------------------- */
+
+function backToRoleSelection() {
+
+  selectedLoginRole = null;
+
+  roleLogin.classList.add("hidden");
+  roleSelection.classList.remove("hidden");
+
+  setAuthError("");
 }
 
-function go(name){
-  document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
-  document.querySelectorAll(".nav").forEach(n=>n.classList.toggle("active", n.dataset.go===name));
-  if(name.startsWith("agent-")){
-    openAgent(name.slice(6));
-    document.getElementById("v-agent").classList.add("active");
-    document.getElementById("title").textContent=AGENT?.n||"Agent";
+
+/* ---------------------------------------------------------
+   AUTH SCREEN
+--------------------------------------------------------- */
+
+function showAuthScreen() {
+
+  authLoading.classList.add("hidden");
+
+  appRoot.classList.add("hidden");
+
+  authScreen.classList.remove("hidden");
+
+  roleLogin.classList.add("hidden");
+  roleSelection.classList.remove("hidden");
+
+  selectedLoginRole = null;
+
+  if (authForm) {
+    authForm.reset();
+  }
+
+  setAuthError("");
+}
+
+
+/* ---------------------------------------------------------
+   SHOW APPLICATION
+--------------------------------------------------------- */
+
+function showApp() {
+
+  authLoading.classList.add("hidden");
+
+  authScreen.classList.add("hidden");
+
+  appRoot.classList.remove("hidden");
+}
+
+
+/* ---------------------------------------------------------
+   AUTH ERROR
+--------------------------------------------------------- */
+
+function setAuthError(message) {
+
+  if (!message) {
+
+    authError.style.display = "none";
+    authError.innerText = "";
+
     return;
   }
-  const el=document.getElementById("v-"+name); if(el) el.classList.add("active");
-  const titles={ "command-center":"Executive Command",agents:"AI Workforce",auditor:"Shadow Auditor","audit-logs":"Audit Logs",integrations:"Integrations",knowledge:"Knowledge",approvals:"Approvals",issues:"Issues",hr:"HR",finance:"Finance",sales:"Sales" };
-  document.getElementById("title").textContent=titles[name]||name;
-  if(name==="command-center") cmd();
-  if(name==="agents") market();
-  if(name==="integrations") ints();
-  if(name==="audit-logs") alogs();
-  if(name==="knowledge") know();
-  if(name==="approvals") approvals();
-  if(name==="issues") issues();
-  if(name==="hr") hr();
-  if(name==="finance") finance();
-  if(name==="sales") sales();
-}
-document.querySelectorAll("[data-go]").forEach(b=>b.addEventListener("click",()=>go(b.dataset.go)));
 
-async function cmd(){
-  document.getElementById("recs").innerHTML=[
-    ["Sales","Unstick Northwind — liability language idle 12 days"],
-    ["HR","Review medium-risk employee in Engineering"],
-    ["Finance","2 approvals over $1k need CEO decision"]
-  ].map(([a,t])=>`<div style="padding:10px 0;border-bottom:1px solid var(--border)"><strong style="font-size:12px">${a}</strong><div class="sub">${t}</div>
-    <button class="btn btn-ok btn-s" style="margin-top:6px" onclick="this.parentElement.innerHTML='<span style=color:var(--green);font-size:12px>Approved — queued</span>'">Approve</button></div>`).join("");
-  try{ const {count}=await sb.from("issues").select("*",{count:"exact",head:true}).eq("company_id",CID).eq("status","open"); document.getElementById("oiss").textContent=count??"—"; }catch(_){}
-  try{ const {count}=await sb.from("approvals").select("*",{count:"exact",head:true}).eq("company_id",CID).eq("status","pending"); document.getElementById("pappr").textContent=count??"—"; }catch(_){}
+  authError.style.display = "block";
+  authError.innerText = message;
 }
 
-function market(){
-  document.getElementById("market").innerHTML=Object.values(AGENTS).map(a=>`
-    <div class="agent" onclick="go('agent-${a.k}')"><div style="font-size:22px">${a.i}</div><h4>${a.n}</h4><p>${a.b}</p>
-    <div class="sub" style="color:var(--green);margin-top:8px">● Online</div></div>`).join("");
-}
 
-function openAgent(k){
-  AGENT=AGENTS[k]; if(!AGENT) return;
-  document.getElementById("agentHero").innerHTML=`<h1>${AGENT.i} ${AGENT.n}</h1><p>${AGENT.b}</p>`;
-  document.getElementById("chat").innerHTML=`<div class="bubble"><strong>${AGENT.n}</strong><br>Online. I use company tables + knowledge. Messages are scanned by Shadow Auditor before processing.</div>`;
-  document.getElementById("arecs").textContent="Ask for a briefing. Live rows load from Supabase for this domain.";
-}
+/* ---------------------------------------------------------
+   LOGIN
+--------------------------------------------------------- */
 
-document.getElementById("asend").onclick=async()=>{
-  const inp=document.getElementById("ain"); const t=inp.value.trim(); if(!t||!AGENT) return;
-  const s=scan(t);
-  if(s.a==="blocked"){ alert("Shadow Auditor BLOCKED critical sensitive data. Message not sent."); await logA(s,t,"agent:"+AGENT.k); return; }
-  if(s.f.length) await logA(s,t,"agent:"+AGENT.k);
-  const chat=document.getElementById("chat");
-  chat.innerHTML+=`<div class="bubble me">${esc(t)}</div>`; inp.value="";
-  let ctx="";
-  try{
-    if(AGENT.k==="hr"){ const {data}=await sb.from("employees").select("name,title,risk").eq("company_id",CID).limit(6); ctx=(data||[]).map(e=>e.name+" risk="+e.risk).join("; "); }
-    else if(AGENT.k==="sales"){ const {data}=await sb.from("deals").select("name,value,stage").eq("company_id",CID).limit(6); ctx=(data||[]).map(d=>d.name+" "+d.stage).join("; "); }
-    else if(AGENT.k==="finance"){ const {data}=await sb.from("transactions").select("description,amount").eq("company_id",CID).limit(6); ctx=(data||[]).map(x=>x.description).join("; "); }
-    else { const {data}=await sb.from("knowledge_items").select("title").eq("company_id",CID).limit(5); ctx=(data||[]).map(k=>k.title).join(", "); }
-  }catch(_){ ctx="(run schema.sql + schema_v4_ai_os.sql)"; }
-  chat.innerHTML+=`<div class="bubble"><strong>${AGENT.n}</strong><br>Context: ${esc(ctx||"empty")}<br><br>Recommendation: prioritize open risks and HITL approvals. Production: Edge Function + RAG LLM; Shadow Auditor strips PII first.</div>`;
-  chat.scrollTop=chat.scrollHeight;
-};
+authForm.addEventListener("submit", async (e) => {
 
-document.getElementById("scanBtn").onclick=async()=>{
-  const t=document.getElementById("scanIn").value, dest=document.getElementById("scanDest").value;
-  if(!t.trim()) return;
-  const s=scan(t); await logA(s,t,dest);
-  const o=document.getElementById("scanOut");
-  if(!s.f.length){ o.innerHTML=`<span class="pill ok">CLEAN</span> Safe for ${dest} under policy.`; return; }
-  o.innerHTML=s.f.map(f=>`<div class="finding"><span class="tag ${f.s==="critical"?"crit":f.s==="high"?"high":"med"}">${f.s}</span><div><strong>${f.l}</strong> ×${f.c}</div></div>`).join("")
-    +`<p style="margin-top:10px"><strong>Action: ${s.a.toUpperCase()}</strong></p>`
-    +(s.a!=="allowed"?`<div class="masked">${esc(s.m)}</div>`:"");
-};
-
-async function logA(s,orig,dest){
-  if(!CID||!USER) return;
-  try{ await sb.from("shadow_audit_logs").insert({ company_id:CID, user_id:USER.id, destination:dest, original_preview:orig.slice(0,200), findings:s.f, action_taken:s.a }); }catch(e){ console.warn(e); }
-}
-
-async function alogs(){
-  const el=document.getElementById("alog");
-  try{
-    const {data}=await sb.from("shadow_audit_logs").select("*").eq("company_id",CID).order("created_at",{ascending:false}).limit(40);
-    if(!data?.length){ el.innerHTML=`<div class="empty">No logs yet — run a scan</div>`; return; }
-    el.innerHTML=`<table><thead><tr><th>When</th><th>Dest</th><th>Action</th></tr></thead><tbody>${data.map(r=>`<tr><td>${new Date(r.created_at).toLocaleString()}</td><td>${r.destination||""}</td><td><span class="pill ${r.action_taken==="blocked"?"bad":r.action_taken==="allowed"?"ok":"pend"}">${r.action_taken}</span></td></tr>`).join("")}</tbody></table>`;
-  }catch(_){ el.innerHTML=`<div class="empty">Run schema_v4_ai_os.sql</div>`; }
-}
-
-async function ints(){
-  const el=document.getElementById("ints"); let rows=[];
-  try{ const {data}=await sb.from("integrations").select("*").eq("company_id",CID); rows=data||[]; }catch(_){}
-  if(!rows.length) rows=["Keka HR","Zoho CRM","Zoho Marketing","Salesforce","HubSpot","Google Workspace","Microsoft 365","Slack","Teams","Jira","QuickBooks","Stripe"].map(n=>({display_name:n,status:"disconnected"}));
-  el.innerHTML=rows.map(r=>`<div class="int"><h4>${r.display_name}</h4><div class="sub">${r.status}</div>
-    <button class="btn btn-g btn-s" style="margin-top:8px" onclick="alert('Production: OAuth via Edge Function + secrets in Supabase Vault.')">${r.status==="connected"?"Disconnect":"Connect"}</button></div>`).join("");
-}
-
-async function know(){
-  const el=document.getElementById("know");
-  try{
-    const {data}=await sb.from("knowledge_items").select("*").eq("company_id",CID);
-    el.innerHTML=data?.length?data.map(k=>`<div style="padding:10px 0;border-bottom:1px solid var(--border)"><strong>${k.title}</strong><div class="sub">${k.body||""}</div></div>`).join(""):`<div class="empty">Seed via schema_v4</div>`;
-  }catch(_){ el.innerHTML=`<div class="empty">schema_v4 required</div>`; }
-}
-
-async function approvals(){
-  const {data}=await sb.from("approvals").select("*").eq("company_id",CID).order("created_at",{ascending:false});
-  const rows=data||[];
-  document.getElementById("alist").innerHTML=rows.length?`<table><thead><tr><th>Title</th><th>Amount</th><th>Status</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${r.title}</td><td>${r.amount||r.amount_value||""}</td><td>${r.status}</td></tr>`).join("")}</tbody></table>`:`<div class="empty">None</div>`;
-}
-document.getElementById("af").onsubmit=async e=>{
-  e.preventDefault(); const amount=Number(document.getElementById("aa").value)||0;
-  await sb.from("approvals").insert({ company_id:CID, title:document.getElementById("at").value, amount:String(amount), amount_value:amount, category:document.getElementById("ac").value, requested_by:PROFILE?.full_name||USER.email, requested_by_id:USER.id, status:"pending" });
-  e.target.reset(); approvals();
-};
-
-async function issues(){
-  const {data}=await sb.from("issues").select("*").eq("company_id",CID).order("created_at",{ascending:false});
-  const rows=data||[];
-  document.getElementById("ilist").innerHTML=rows.length?`<table><thead><tr><th>Title</th><th>Dept</th><th>Sev</th><th>Status</th></tr></thead><tbody>${rows.map(i=>`<tr><td>${i.title}</td><td>${i.department||""}</td><td>${i.severity}</td><td>${i.status}</td></tr>`).join("")}</tbody></table>`:`<div class="empty">None</div>`;
-}
-document.getElementById("iff").onsubmit=async e=>{
   e.preventDefault();
-  await sb.from("issues").insert({ company_id:CID, title:document.getElementById("it").value, description:document.getElementById("idesc").value, department:document.getElementById("idept").value, severity:document.getElementById("isev").value, status:"open", raised_by:PROFILE?.full_name||USER.email, raised_by_id:USER.id });
-  e.target.reset(); issues();
+
+  if (!selectedLoginRole) {
+
+    setAuthError("Please select your role first.");
+
+    return;
+  }
+
+  const email =
+    document.getElementById("authEmail").value.trim();
+
+  const password =
+    document.getElementById("authPassword").value;
+
+
+  authSubmit.disabled = true;
+  authSubmit.innerText = "Signing in...";
+
+  setAuthError("");
+
+
+  try {
+
+    /* -----------------------------------------------
+       SUPABASE AUTHENTICATION
+    ------------------------------------------------ */
+
+    const { data, error } =
+      await supabaseClient.auth.signInWithPassword({
+        email,
+        password
+      });
+
+
+    if (error) {
+      throw error;
+    }
+
+
+    if (!data || !data.user) {
+      throw new Error("Unable to sign in.");
+    }
+
+
+    /* -----------------------------------------------
+       GET PROFILE
+    ------------------------------------------------ */
+
+    const {
+      data: profile,
+      error: profileError
+    } = await supabaseClient
+      .from("profiles")
+      .select("*")
+      .eq("id", data.user.id)
+      .single();
+
+
+    if (profileError || !profile) {
+
+      await supabaseClient.auth.signOut();
+
+      throw new Error(
+        "Your account profile was not found. Please contact the administrator."
+      );
+    }
+
+
+    /* -----------------------------------------------
+       VERIFY ROLE
+    ------------------------------------------------ */
+
+    const actualRole =
+      String(profile.role || "").toLowerCase();
+
+    if (actualRole !== selectedLoginRole) {
+
+      await supabaseClient.auth.signOut();
+
+      const roleNames = {
+        ceo: "CEO",
+        manager: "Manager",
+        employee: "Employee"
+      };
+
+      throw new Error(
+        `This account is registered as ${roleNames[actualRole] || "another role"}, not ${roleNames[selectedLoginRole]}.`
+      );
+    }
+
+
+    /* -----------------------------------------------
+       VERIFY COMPANY
+    ------------------------------------------------ */
+
+    if (!profile.company_id) {
+
+      await supabaseClient.auth.signOut();
+
+      throw new Error(
+        "Your account is not linked to a company. Please contact the administrator."
+      );
+    }
+
+
+    /* -----------------------------------------------
+       LOAD DASHBOARD
+    ------------------------------------------------ */
+
+    await loadDashboard();
+
+  } catch (err) {
+
+    console.error("Login error:", err);
+
+    setAuthError(
+      err.message || "Unable to sign in. Please try again."
+    );
+
+  } finally {
+
+    authSubmit.disabled = false;
+    authSubmit.innerText = "Sign In";
+
+  }
+
+});
+
+
+/* ---------------------------------------------------------
+   SIGN OUT
+--------------------------------------------------------- */
+
+document
+  .getElementById("signOutBtn")
+  .addEventListener("click", async () => {
+
+    await supabaseClient.auth.signOut();
+
+    CURRENT_USER = null;
+    CURRENT_PROFILE = null;
+    CURRENT_COMPANY_ID = null;
+    CURRENT_ROLE = null;
+
+    showAuthScreen();
+
+  });
+/* =========================================================
+   SESSION STATE
+========================================================= */
+let CURRENT_USER = null;
+let CURRENT_PROFILE = null;
+let CURRENT_COMPANY_ID = null;
+let CURRENT_ROLE = null;
+let CURRENT_ISSUE_FILTER = "all";
+
+const CAN_APPROVE = () => CURRENT_ROLE === "ceo";
+const CAN_MANAGE_TEAM = () => CURRENT_ROLE === "ceo" || CURRENT_ROLE === "manager";
+const CAN_VIEW_FINANCE = () => CURRENT_ROLE === "ceo" || CURRENT_ROLE === "manager";
+const CAN_WRITE_FINANCE = () => CURRENT_ROLE === "ceo";
+const CAN_MANAGE_AUTOMATIONS = () => CURRENT_ROLE === "ceo";
+const CAN_VIEW_AUTOMATIONS = () => CURRENT_ROLE === "ceo" || CURRENT_ROLE === "manager";
+const CAN_RESOLVE_ISSUES = () => CURRENT_ROLE === "ceo" || CURRENT_ROLE === "manager";
+
+function fmtMoney(n) {
+  const num = Number(n) || 0;
+  return num.toLocaleString(undefined, { style: "currency", currency: "USD", maximumFractionDigits: 0 });
+}
+
+function timeAgo(isoString) {
+  const seconds = Math.floor((Date.now() - new Date(isoString).getTime()) / 1000);
+  if (seconds < 60) return "just now";
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes} min ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  return `${Math.floor(hours / 24)}d ago`;
+}
+
+/* ========================================================= 
+   LOAD DASHBOARD 
+========================================================= */ 
+async function loadDashboard() { 
+  const { data: { user } } = await supabaseClient.auth.getUser(); 
+  if (!user) { 
+    showAuthScreen(); 
+    return; 
+  } 
+ 
+  let profile = null; 
+  let profileError = null; 
+ 
+  try { 
+    const res = await supabaseClient
+      .from("profiles")
+      .select("*, companies(*)")
+      .eq("id", user.id)
+      .single(); 
+ 
+    profile = res.data; 
+    profileError = res.error; 
+  } catch (e) { 
+    profileError = e; 
+  } 
+ 
+  if (profileError || !profile || !profile.company_id) { 
+    await supabaseClient.auth.signOut(); 
+ 
+    showAuthScreen(); 
+ 
+    setAuthError( 
+      "Your WatchTower profile could not be loaded. Please contact the administrator." 
+    ); 
+ 
+    return; 
+  } 
+ 
+  const companyId = profile.company_id; 
+  const company = profile.companies; 
+ 
+  if (!company) { 
+    await supabaseClient.auth.signOut(); 
+ 
+    showAuthScreen(); 
+ 
+    setAuthError( 
+      "Your company record could not be loaded. Please contact the administrator." 
+    ); 
+ 
+    return; 
+  } 
+ 
+  CURRENT_PROFILE = profile; 
+  CURRENT_COMPANY_ID = companyId; 
+  CURRENT_ROLE = profile.role || "employee"; 
+ 
+  const [
+  departments,
+  alerts,
+  actions,
+  activities,
+  wins,
+  risks,
+  employees,
+  issues,
+  aiTelemetry
+] = await Promise.all([
+
+  supabaseClient
+    .from("departments")
+    .select("*")
+    .eq("company_id", companyId)
+    .order("sort_order"),
+
+  supabaseClient
+    .from("alerts")
+    .select("*")
+    .eq("company_id", companyId)
+    .order("created_at", { ascending: false }),
+
+  supabaseClient
+    .from("actions")
+    .select("*")
+    .eq("company_id", companyId)
+    .order("sort_order"),
+
+  supabaseClient
+    .from("activities")
+    .select("*")
+    .eq("company_id", companyId)
+    .order("created_at", { ascending: false })
+    .limit(8),
+
+  supabaseClient
+    .from("wins")
+    .select("*")
+    .eq("company_id", companyId)
+    .order("created_at", { ascending: false }),
+
+  supabaseClient
+    .from("risks")
+    .select("*")
+    .eq("company_id", companyId)
+    .order("sort_order"),
+
+  supabaseClient
+    .from("employees")
+    .select("department,status,risk")
+    .eq("company_id", companyId),
+
+  supabaseClient
+    .from("issues")
+    .select("department,severity,status")
+    .eq("company_id", companyId),
+
+  supabaseClient
+    .from("ai_telemetry")
+    .select("*")
+    .eq("company_id", companyId)
+    .order("detected_at", { ascending: false })
+]);
+
+const telemetryRows = aiTelemetry?.data || [];
+
+const shadowAiTools = new Set(
+  telemetryRows
+    .map(row => row.tool_name)
+    .filter(Boolean)
+);
+
+const policyViolations = telemetryRows.filter(
+  row => row.event_type === "policy_violation"
+);
+
+const recentTelemetry = telemetryRows.filter(row => {
+  const detectedTime = new Date(row.detected_at).getTime();
+
+  return detectedTime >= Date.now() - (24 * 60 * 60 * 1000);
+});
+
+const shadowAiMonitoring = [
+  {
+    title: "Shadow AI tools",
+    number: shadowAiTools.size,
+    description: "Unique AI tools detected by telemetry.",
+    status: shadowAiTools.size > 0 ? "REVIEW" : "OK"
+  },
+
+  {
+    title: "AI activity (24h)",
+    number: recentTelemetry.length,
+    description: "AI telemetry events recorded in the last 24 hours.",
+    status: "OK"
+  },
+
+  {
+    title: "Policy violations",
+    number: policyViolations.length,
+    description: "AI usage events flagged by governance policy.",
+    status: policyViolations.length > 0 ? "REVIEW" : "OK"
+  }
+];
+
+
+const DATA = {
+  company,
+  role: CURRENT_ROLE,
+
+  departments: departmentRows,
+
+  alerts: alerts?.data || [],
+
+  actions: actions?.data || [],
+
+  activities: (activities?.data || []).map(a => ({
+    name: a.actor_name,
+    action: a.action_text,
+    time: timeAgo(a.created_at),
+    type: a.type
+  })),
+
+  wins: (wins?.data || []).map(w => w.text),
+
+  risks: risks?.data || [],
+
+  aiMonitoring: shadowAiMonitoring
 };
 
-async function hr(){
-  const {data}=await sb.from("employees").select("*").eq("company_id",CID);
-  const rows=data||[];
-  document.getElementById("elist").innerHTML=rows.length?`<table><thead><tr><th>Name</th><th>Title</th><th>Dept</th><th>Risk</th></tr></thead><tbody>${rows.map(e=>`<tr><td>${e.name}</td><td>${e.title||""}</td><td>${e.department||""}</td><td>${e.risk}</td></tr>`).join("")}</tbody></table>`:`<div class="empty">None</div>`;
+ const departmentRows = (departments?.data || []).map(dept => {
+
+  const deptEmployees = (employees?.data || []).filter(
+    e => e.department === dept.name && e.status !== "offboarded"
+  );
+
+  const deptIssues = (issues?.data || []).filter(
+    i => i.department === dept.name && i.status !== "resolved"
+  );
+
+  let score = 100;
+
+  deptIssues.forEach(issue => {
+    if (issue.severity === "critical") score -= 20;
+    else if (issue.severity === "high") score -= 12;
+    else if (issue.severity === "medium") score -= 6;
+    else if (issue.severity === "low") score -= 2;
+  });
+
+  deptEmployees.forEach(employee => {
+    if (employee.risk === "high") score -= 8;
+    else if (employee.risk === "medium") score -= 4;
+  });
+
+  score = Math.max(0, Math.min(100, score));
+
+  return {
+    ...dept,
+    score
+  };
+});
+  render(DATA); 
+  showApp(); 
+ 
+  try { 
+    const { count } = await supabaseClient
+      .from("notifications")
+      .select("*", { count: "exact", head: true })
+      .eq("company_id", companyId)
+      .eq("is_read", false); 
+ 
+    updateNotifBadges(count ?? 0); 
+  } catch (_) { 
+    updateNotifBadges(0); 
+  } 
+ 
+  try { 
+    const { count: issueCount } = await supabaseClient
+      .from("issues")
+      .select("*", { count: "exact", head: true })
+      .eq("company_id", companyId)
+      .eq("status", "open"); 
+ 
+    const badge = document.getElementById("issueBadge"); 
+ 
+    if (badge) { 
+      if (issueCount > 0) { 
+        badge.style.display = "flex"; 
+        badge.innerText = issueCount; 
+      } else { 
+        badge.style.display = "none"; 
+      } 
+    } 
+  } catch (_) {} 
+} 
+ 
+function updateNotifBadges(n) { 
+  const badge = document.getElementById("notifBadge"); 
+  const top = document.getElementById("topNotifCount"); 
+ 
+  if (badge) badge.innerText = n; 
+  if (top) top.innerText = n; 
 }
-document.getElementById("ef").onsubmit=async e=>{
+/* =========================================================
+   RENDER COMMAND CENTER
+========================================================= */
+function render(DATA) {
+  document.getElementById("companyName").innerText = DATA.company.name || "Acme Corp";
+  document.getElementById("welcomeCompany").innerText = DATA.company.name || "Acme Corp";
+  document.getElementById("founderScore").innerText = DATA.company.founder_score ?? 71;
+
+  const roleLabel = DATA.role === "ceo" ? "CEO" : DATA.role === "manager" ? "Manager" : "Employee";
+  document.getElementById("viewingBadge").innerText = `Viewing as: ${roleLabel}`;
+  document.getElementById("avatarBtn").innerText = (CURRENT_PROFILE?.full_name || CURRENT_USER?.email || "U").charAt(0).toUpperCase();
+
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
+  document.getElementById("welcomeHeading").innerText = `${greeting}, ${roleLabel}.`;
+
+  const score = DATA.company.founder_score ?? 71;
+  document.getElementById("scoreStatus").innerText = score >= 75 ? "STRONG" : score >= 60 ? "HEALTHY" : "NEEDS ATTENTION";
+  document.getElementById("scoreBlurb").innerText = score >= 75
+    ? "Operating health is strong across most departments."
+    : score >= 60
+      ? "Company operating health is stable, with a few areas requiring attention."
+      : "Several areas need focus — review alerts and department scores.";
+
+  const finNav = document.getElementById("navFinance");
+  const salesNav = document.getElementById("navSales");
+  const aiNav = document.getElementById("navAiAgents");
+  const autoNav = document.getElementById("navAutomation");
+  if (finNav) finNav.style.display = CAN_VIEW_FINANCE() ? "flex" : "none";
+  if (salesNav) salesNav.style.display = CAN_VIEW_FINANCE() ? "flex" : "none";
+  if (aiNav) aiNav.style.display = CAN_VIEW_AUTOMATIONS() ? "flex" : "none";
+  if (autoNav) autoNav.style.display = CAN_VIEW_AUTOMATIONS() ? "flex" : "none";
+
+  const circumference = 333;
+  const offset = circumference - (circumference * score) / 100;
+  document.getElementById("scoreRingCircle").style.strokeDashoffset = offset;
+
+  /* Departments */
+  const departmentsContainer = document.getElementById("departments");
+  departmentsContainer.innerHTML = "";
+  DATA.departments.forEach(department => {
+    let className = "";
+    if (department.score < 65) className = "danger";
+    else if (department.score < 72) className = "warning";
+    departmentsContainer.innerHTML += `
+      <div class="department">
+        <span class="department-name">${department.name}</span>
+        <div class="department-bar"><div class="department-fill ${className}" style="width:${department.score}%"></div></div>
+        <span class="department-score">${department.score}</span>
+      </div>`;
+  });
+
+  /* Alerts */
+  const alertsContainer = document.getElementById("alerts");
+  alertsContainer.innerHTML = "";
+  document.getElementById("alertsCount").innerText = `${DATA.alerts.length} active`;
+  DATA.alerts.forEach(alert => {
+    const lvl = (alert.level || "MED").toLowerCase().slice(0, 4);
+    alertsContainer.innerHTML += `
+      <div class="alert">
+        <span class="severity ${lvl === "crit" ? "crit" : lvl === "high" ? "high" : "med"}">${alert.level}</span>
+        <div><strong>${alert.title}</strong><p>${alert.description}</p></div>
+      </div>`;
+  });
+
+  /* KPIs */
+  document.getElementById("kpis").innerHTML = `
+    <div class="kpi"><div class="kpi-icon green-icon">$</div><span class="kpi-label">Pipeline value</span><strong class="kpi-value">${DATA.company.pipeline || "$2.4M"}</strong><small class="kpi-sub">Open deals, all stages</small></div>
+    <div class="kpi"><div class="kpi-icon blue-icon">♙</div><span class="kpi-label">Headcount</span><strong class="kpi-value">${DATA.company.headcount ?? 48}</strong><small class="kpi-sub">${DATA.company.open_requisitions ?? 3} open requisitions</small></div>
+    <div class="kpi"><div class="kpi-icon yellow-icon">✓</div><span class="kpi-label">Approvals pending</span><strong class="kpi-value">${DATA.company.approvals ?? 5}</strong><small class="kpi-sub">Across all departments</small></div>
+    <div class="kpi"><div class="kpi-icon purple-icon">◇</div><span class="kpi-label">AI risk score</span><strong class="kpi-value">${DATA.company.ai_risk_score ?? 34}</strong><small class="kpi-sub">Needs monitoring</small></div>`;
+
+  /* Actions */
+  const actionsContainer = document.getElementById("actions");
+  actionsContainer.innerHTML = "";
+  DATA.actions.forEach((action, index) => {
+    actionsContainer.innerHTML += `
+      <div class="action">
+        <span class="action-number">${String(index + 1).padStart(2, "0")}</span>
+        <div><strong>${action.title}</strong><p>${action.description}</p></div>
+        <span class="action-arrow">›</span>
+      </div>`;
+  });
+
+  /* Activities */
+  const activitiesContainer = document.getElementById("activities");
+  activitiesContainer.innerHTML = "";
+  DATA.activities.forEach(activity => {
+    activitiesContainer.innerHTML += `
+      <div class="activity">
+        <span class="activity-dot ${activity.type}-dot"></span>
+        <div class="activity-text"><strong>${activity.name}</strong> ${activity.action}<span class="activity-time">${activity.time}</span></div>
+      </div>`;
+  });
+
+  /* Wins */
+  const winsContainer = document.getElementById("wins");
+  winsContainer.innerHTML = "";
+  DATA.wins.forEach(win => {
+    winsContainer.innerHTML += `<div class="win"><span class="check">✓</span><span>${win}</span></div>`;
+  });
+
+  /* Risks */
+  const risksContainer = document.getElementById("risks");
+  risksContainer.innerHTML = "";
+  DATA.risks.forEach(risk => {
+    risksContainer.innerHTML += `
+      <div class="risk-item">
+        <div class="risk-top"><span>${risk.name}</span><strong>${risk.level}</strong></div>
+        <div class="risk-bar"><div class="risk-progress ${risk.class_name}" style="width:${risk.value}%"></div></div>
+      </div>`;
+  });
+
+  /* AI */
+  const aiContainer = document.getElementById("aiMonitoring");
+  aiContainer.innerHTML = "";
+  DATA.aiMonitoring.forEach(item => {
+    const ok = (item.status || "").toUpperCase() === "OK";
+    aiContainer.innerHTML += `
+      <div class="ai-card">
+        <div class="ai-card-header"><h3>${item.title}</h3><span class="ai-status ${ok ? "ok" : ""}">${item.status}</span></div>
+        <div class="ai-number">${item.number}</div>
+        <p class="ai-description">${item.description}</p>
+      </div>`;
+  });
+}
+
+/* =========================================================
+   APPROVALS
+========================================================= */
+async function loadApprovalsView() {
+  let rows = [];
+  try {
+    const { data } = await supabaseClient.from("approvals").select("*").eq("company_id", CURRENT_COMPANY_ID).order("created_at", { ascending: false });
+    rows = data || [];
+  } catch (_) {}
+
+  document.getElementById("approvalsCount").innerText = CAN_APPROVE()
+    ? `${rows.filter(r => r.status === "pending").length} pending`
+    : `${rows.length} of yours`;
+
+  const list = document.getElementById("approvalsList");
+  if (!rows.length) {
+    list.innerHTML = `<div class="empty-state">No requests yet. Submit one above.</div>`;
+    return;
+  }
+  list.innerHTML = `
+    <table class="data-table">
+      <thead><tr><th>Title</th><th>Category</th><th>Amount</th><th>Requested by</th><th>Status</th>${CAN_APPROVE() ? "<th></th>" : ""}</tr></thead>
+      <tbody>
+        ${rows.map(r => `
+          <tr>
+            <td><strong>${r.title}</strong><br><span style="color:#7e7e86;font-size:11px;">${r.description || ""}</span></td>
+            <td>${r.category || "—"}</td>
+            <td>${r.amount || "—"}</td>
+            <td>${r.requested_by || "—"}</td>
+            <td><span class="status-pill status-${r.status}">${(r.status || "pending").toUpperCase()}</span></td>
+            ${CAN_APPROVE() && r.status === "pending" ? `
+              <td>
+                <button class="btn btn-approve btn-small" onclick="updateApproval('${r.id}','approved')">Approve</button>
+                <button class="btn btn-reject btn-small" onclick="updateApproval('${r.id}','rejected')">Reject</button>
+              </td>` : (CAN_APPROVE() ? "<td></td>" : "")}
+          </tr>`).join("")}
+      </tbody>
+    </table>
+    ${!CAN_APPROVE() ? `<p style="color:#65656d;font-size:11px;margin-top:10px;">You're seeing only requests you submitted. The CEO reviews and approves these.</p>` : ""}`;
+}
+
+async function updateApproval(id, status) {
+  await supabaseClient.from("approvals").update({ status }).eq("id", id);
+  loadApprovalsView();
+}
+
+document.getElementById("approvalForm").addEventListener("submit", async (e) => {
   e.preventDefault();
-  await sb.from("employees").insert({ company_id:CID, name:document.getElementById("en").value, title:document.getElementById("et").value, department:document.getElementById("ed").value, status:"active", risk:"low" });
-  e.target.reset(); hr();
-};
+  const amountRaw = document.getElementById("approvalAmount").value;
+  const amountNum = parseFloat(String(amountRaw).replace(/[^0-9.]/g, ""));
+  try {
+    await supabaseClient.from("approvals").insert({
+      company_id: CURRENT_COMPANY_ID,
+      title: document.getElementById("approvalTitle").value,
+      amount: amountRaw,
+      amount_value: isNaN(amountNum) ? null : amountNum,
+      category: document.getElementById("approvalCategory").value,
+      description: document.getElementById("approvalDescription").value,
+      requested_by: CURRENT_PROFILE.full_name || CURRENT_USER.email,
+      requested_by_id: CURRENT_USER.id,
+      status: "pending"
+    });
+  } catch (err) {
+    console.warn(err);
+  }
+  e.target.reset();
+  loadApprovalsView();
+});
 
-async function finance(){
-  const {data}=await sb.from("transactions").select("*").eq("company_id",CID);
-  const rows=data||[];
-  const inc=rows.filter(r=>r.type==="income").reduce((s,r)=>s+Number(r.amount),0);
-  const exp=rows.filter(r=>r.type==="expense").reduce((s,r)=>s+Math.abs(Number(r.amount)),0);
-  document.getElementById("fsum").innerHTML=`<div class="card"><div class="sub">Income</div><div class="metric" style="color:var(--green)">$${inc.toLocaleString()}</div></div>
-    <div class="card"><div class="sub">Expense</div><div class="metric" style="color:var(--red)">$${exp.toLocaleString()}</div></div>
-    <div class="card"><div class="sub">Net</div><div class="metric">$${(inc-exp).toLocaleString()}</div></div>`;
-  document.getElementById("tlist").innerHTML=rows.length?`<table><thead><tr><th>Desc</th><th>Type</th><th>Amt</th></tr></thead><tbody>${rows.map(t=>`<tr><td>${t.description}</td><td>${t.type}</td><td>${t.amount}</td></tr>`).join("")}</tbody></table>`:`<div class="empty">None</div>`;
-}
-document.getElementById("tf").onsubmit=async e=>{
-  e.preventDefault(); let amount=Number(document.getElementById("tam").value); const type=document.getElementById("tty").value;
-  if(type==="expense") amount=-Math.abs(amount);
-  await sb.from("transactions").insert({ company_id:CID, description:document.getElementById("td").value, amount, type });
-  e.target.reset(); finance();
-};
+/* =========================================================
+   NOTIFICATIONS
+========================================================= */
+async function loadNotificationsView() {
+  let rows = [];
+  try {
+    const { data } = await supabaseClient.from("notifications").select("*").eq("company_id", CURRENT_COMPANY_ID).order("created_at", { ascending: false });
+    rows = data || [];
+  } catch (_) {
+    rows = [
+      { id: "1", title: "High risk employee flagged", message: "Taylor Kim has been flagged as medium risk.", is_read: false },
+      { id: "2", title: "Auto-approved expense", message: "Request under $500 was auto-approved.", is_read: true },
+      { id: "3", title: "New issue opened", message: "Legal matter raised by Jamie Ortiz.", is_read: false }
+    ];
+  }
 
-async function sales(){
-  const {data}=await sb.from("deals").select("*").eq("company_id",CID);
-  const rows=data||[];
-  document.getElementById("dlist").innerHTML=rows.length?`<table><thead><tr><th>Deal</th><th>Stage</th><th>Value</th></tr></thead><tbody>${rows.map(d=>`<tr><td>${d.name}</td><td>${d.stage}</td><td>${d.value}</td></tr>`).join("")}</tbody></table>`:`<div class="empty">None</div>`;
+  const unreadCount = rows.filter(r => !r.is_read).length;
+  updateNotifBadges(unreadCount);
+
+  const list = document.getElementById("notificationsList");
+  if (!rows.length) {
+    list.innerHTML = `<div class="empty-state">You're all caught up.</div>`;
+    return;
+  }
+  list.innerHTML = rows.map(n => `
+    <div class="notif-row ${n.is_read ? "" : "unread"}">
+      <div style="display:flex;gap:9px;">
+        ${n.is_read ? "" : `<span class="unread-dot"></span>`}
+        <div><strong>${n.title}</strong><p>${n.message}</p></div>
+      </div>
+      ${n.is_read ? "" : `<button class="btn btn-primary btn-small" onclick="markNotificationRead('${n.id}')">Mark read</button>`}
+    </div>`).join("");
 }
-document.getElementById("df").onsubmit=async e=>{
+
+async function markNotificationRead(id) {
+  try {
+    await supabaseClient.from("notifications").update({ is_read: true }).eq("id", id);
+  } catch (_) {}
+  loadNotificationsView();
+}
+
+document.getElementById("markAllReadBtn").addEventListener("click", async () => {
+  try {
+    await supabaseClient.from("notifications").update({ is_read: true }).eq("company_id", CURRENT_COMPANY_ID).eq("is_read", false);
+  } catch (_) {}
+  loadNotificationsView();
+});
+
+/* =========================================================
+   ISSUES
+========================================================= */
+function prefillIssue(dept, titleHint) {
+  showView("issues");
+  document.querySelectorAll(".nav-item").forEach(n => n.classList.remove("active"));
+  document.querySelector('[data-view="issues"]')?.classList.add("active");
+  document.getElementById("pageTitle").innerText = "Issue Tracker";
+  if (dept) document.getElementById("issueDepartment").value = dept;
+  if (titleHint) document.getElementById("issueTitle").value = titleHint;
+  document.getElementById("issueTitle").focus();
+}
+
+async function loadIssuesView() {
+  let rows = [];
+  try {
+    let q = supabaseClient.from("issues").select("*").eq("company_id", CURRENT_COMPANY_ID).order("created_at", { ascending: false });
+    if (CURRENT_ISSUE_FILTER !== "all") q = q.eq("status", CURRENT_ISSUE_FILTER);
+    const { data, error } = await q;
+    if (error) throw error;
+    rows = data || [];
+  } catch (err) {
+    console.warn("issues load:", err);
+    rows = [];
+  }
+
+  document.getElementById("issuesCount").innerText = `${rows.length} shown`;
+  try {
+    const { count } = await supabaseClient.from("issues").select("*", { count: "exact", head: true }).eq("company_id", CURRENT_COMPANY_ID).eq("status", "open");
+    const badge = document.getElementById("issueBadge");
+    if (badge) {
+      if (count > 0) { badge.style.display = "flex"; badge.innerText = count; }
+      else badge.style.display = "none";
+    }
+  } catch (_) {}
+
+  const list = document.getElementById("issuesList");
+  if (!rows.length) {
+    list.innerHTML = `<div class="empty-state">No issues match this filter. Raise one above.</div>`;
+    return;
+  }
+
+  list.innerHTML = `
+    <table class="data-table">
+      <thead><tr><th>Title</th><th>Dept</th><th>Severity</th><th>Raised by</th><th>Status</th>${CAN_RESOLVE_ISSUES() ? "<th>Actions</th>" : ""}</tr></thead>
+      <tbody>
+        ${rows.map(i => `
+          <tr>
+            <td><strong>${i.title}</strong><br><span style="color:#7e7e86;font-size:11px;">${(i.description || "").slice(0, 80)}${(i.description || "").length > 80 ? "…" : ""}</span>
+              ${i.resolution ? `<br><span style="color:#86efac;font-size:11px;">Resolution: ${i.resolution}</span>` : ""}
+            </td>
+            <td>${i.department || "—"}</td>
+            <td><span class="status-pill sev-${i.severity}">${(i.severity || "medium").toUpperCase()}</span></td>
+            <td>${i.raised_by || "—"}</td>
+            <td><span class="status-pill status-${i.status}">${(i.status || "open").replace("_", " ").toUpperCase()}</span></td>
+            ${CAN_RESOLVE_ISSUES() ? `
+              <td style="white-space:nowrap">
+                ${i.status === "open" ? `<button class="btn btn-ghost btn-small" onclick="updateIssue('${i.id}','in_progress')">Start</button>` : ""}
+                ${i.status !== "resolved" ? `<button class="btn btn-approve btn-small" onclick="resolveIssue('${i.id}')">Resolve</button>` : ""}
+              </td>` : ""}
+          </tr>`).join("")}
+      </tbody>
+    </table>`;
+}
+
+async function updateIssue(id, status) {
+  await supabaseClient.from("issues").update({ status }).eq("id", id);
+  loadIssuesView();
+}
+
+async function resolveIssue(id) {
+  const note = prompt("Resolution note (optional):") || "Resolved by manager";
+  await supabaseClient.from("issues").update({
+    status: "resolved",
+    resolution: note,
+    resolved_by: CURRENT_PROFILE?.full_name || CURRENT_USER?.email
+  }).eq("id", id);
+  loadIssuesView();
+}
+
+document.getElementById("issueForm").addEventListener("submit", async (e) => {
   e.preventDefault();
-  await sb.from("deals").insert({ company_id:CID, name:document.getElementById("dn").value, value:Number(document.getElementById("dv").value), stage:document.getElementById("ds").value });
-  e.target.reset(); sales();
+  await supabaseClient.from("issues").insert({
+    company_id: CURRENT_COMPANY_ID,
+    title: document.getElementById("issueTitle").value,
+    description: document.getElementById("issueDescription").value,
+    department: document.getElementById("issueDepartment").value,
+    severity: document.getElementById("issueSeverity").value,
+    status: "open",
+    raised_by: CURRENT_PROFILE?.full_name || CURRENT_USER?.email,
+    raised_by_id: CURRENT_USER?.id
+  });
+  e.target.reset();
+  loadIssuesView();
+});
+
+document.getElementById("issueFilters").addEventListener("click", (e) => {
+  const chip = e.target.closest(".filter-chip");
+  if (!chip) return;
+  document.querySelectorAll(".filter-chip").forEach(c => c.classList.remove("active"));
+  chip.classList.add("active");
+  CURRENT_ISSUE_FILTER = chip.dataset.filter;
+  loadIssuesView();
+});
+
+/* =========================================================
+   HR / DIRECTORY
+========================================================= */
+async function loadHrView() {
+  document.getElementById("hrAddCard").style.display = CAN_MANAGE_TEAM() ? "block" : "none";
+  const deptField = document.getElementById("empDepartment");
+  if (deptField && CURRENT_ROLE === "manager") {
+    deptField.value = CURRENT_PROFILE.department || "";
+    deptField.readOnly = true;
+  } else if (deptField) {
+    deptField.readOnly = false;
+  }
+
+  let rows = [];
+  try {
+    const { data } = await supabaseClient.from("employees").select("*").eq("company_id", CURRENT_COMPANY_ID).order("created_at", { ascending: false });
+    rows = data || [];
+  } catch (_) {}
+  if (!rows.length) rows = [];
+
+  document.getElementById("hrKpis").innerHTML = `
+    <div class="mod-kpi"><div class="label">Headcount</div><div class="value">${rows.length}</div><div class="delta">Active roster</div></div>
+    <div class="mod-kpi"><div class="label">High risk</div><div class="value">${rows.filter(e => e.risk === "high").length}</div><div class="delta">Needs attention</div></div>
+    <div class="mod-kpi"><div class="label">On leave</div><div class="value">${rows.filter(e => e.status === "on_leave").length}</div><div class="delta">—</div></div>
+    <div class="mod-kpi"><div class="label">Departments</div><div class="value">${new Set(rows.map(e => e.department)).size}</div><div class="delta">Represented</div></div>`;
+
+  const list = document.getElementById("employeesList");
+  list.innerHTML = `
+    <table class="data-table">
+      <thead><tr><th>Name</th><th>Title</th><th>Department</th><th>Email</th><th>Status</th><th>Risk</th></tr></thead>
+      <tbody>
+        ${rows.map(e => `
+          <tr>
+            <td><strong>${e.name}</strong></td>
+            <td>${e.title || "—"}</td>
+            <td>${e.department || "—"}</td>
+            <td>${e.email || "—"}</td>
+            <td><span class="status-pill status-${e.status || "active"}">${(e.status || "active").replace("_", " ").toUpperCase()}</span></td>
+            <td><span class="status-pill risk-${e.risk || "low"}">${(e.risk || "low").toUpperCase()}</span></td>
+          </tr>`).join("")}
+      </tbody>
+    </table>`;
+}
+
+document.getElementById("employeeForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  try {
+    await supabaseClient.from("employees").insert({
+      company_id: CURRENT_COMPANY_ID,
+      name: document.getElementById("empName").value,
+      title: document.getElementById("empTitle").value,
+      department: document.getElementById("empDepartment").value,
+      email: document.getElementById("empEmail").value,
+      status: "active",
+      risk: "low"
+    });
+  } catch (_) {}
+  e.target.reset();
+  loadHrView();
+});
+
+async function loadDirectoryView() {
+  let rows = [];
+  try {
+    const { data } = await supabaseClient.from("employees").select("*").eq("company_id", CURRENT_COMPANY_ID).order("department");
+    rows = data || [];
+  } catch (_) {}
+  if (!rows.length) rows = [];
+  document.getElementById("directoryList").innerHTML = `
+    <table class="data-table">
+      <thead><tr><th>Name</th><th>Title</th><th>Department</th><th>Email</th><th>Status</th><th>Risk</th></tr></thead>
+      <tbody>
+        ${rows.map(e => `
+          <tr>
+            <td><strong>${e.name}</strong></td>
+            <td>${e.title || "—"}</td>
+            <td>${e.department || "—"}</td>
+            <td>${e.email || "—"}</td>
+            <td><span class="status-pill status-${e.status || "active"}">${(e.status || "active").replace("_", " ").toUpperCase()}</span></td>
+            <td><span class="status-pill risk-${e.risk || "low"}">${(e.risk || "low").toUpperCase()}</span></td>
+          </tr>`).join("")}
+      </tbody>
+    </table>`;
+}
+
+/* =========================================================
+   FINANCE
+========================================================= */
+async function loadFinanceView() {
+  document.getElementById("financeAddCard").style.display = CAN_WRITE_FINANCE() ? "block" : "none";
+  let rows = [];
+  try {
+    const { data } = await supabaseClient.from("transactions").select("*").eq("company_id", CURRENT_COMPANY_ID).order("occurred_on", { ascending: false });
+    rows = data || [];
+  } catch (_) {}
+
+  const income = rows.filter(r => r.type === "income").reduce((s, r) => s + Number(r.amount), 0);
+  const expense = rows.filter(r => r.type === "expense").reduce((s, r) => s + Math.abs(Number(r.amount)), 0);
+
+  document.getElementById("financeSummary").innerHTML = `
+    <div class="kpi"><span class="kpi-label">Total income</span><strong class="kpi-value" style="color:var(--green)">${fmtMoney(income || 124000)}</strong></div>
+    <div class="kpi"><span class="kpi-label">Total expenses</span><strong class="kpi-value" style="color:var(--red)">${fmtMoney(expense || 87000)}</strong></div>
+    <div class="kpi"><span class="kpi-label">Net</span><strong class="kpi-value">${fmtMoney((income || 124000) - (expense || 87000))}</strong></div>`;
+
+  const list = document.getElementById("transactionsList");
+  if (!rows.length) {
+    list.innerHTML = `<div class="empty-state">No transactions yet. ${CAN_WRITE_FINANCE() ? "Add one above." : ""}</div>`;
+    return;
+  }
+  list.innerHTML = `
+    <table class="data-table">
+      <thead><tr><th>Date</th><th>Description</th><th>Type</th><th>Amount</th></tr></thead>
+      <tbody>
+        ${rows.map(t => `
+          <tr>
+            <td>${t.occurred_on || "—"}</td>
+            <td>${t.description}</td>
+            <td><span class="status-pill status-${t.type === "income" ? "approved" : "rejected"}">${(t.type || "").toUpperCase()}</span></td>
+            <td style="color:${t.type === "income" ? "var(--green)" : "var(--red)"}">${fmtMoney(t.amount)}</td>
+          </tr>`).join("")}
+      </tbody>
+    </table>`;
+}
+
+document.getElementById("transactionForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const type = document.getElementById("txType").value;
+  let amount = Number(document.getElementById("txAmount").value);
+  if (type === "expense") amount = -Math.abs(amount);
+  try {
+    await supabaseClient.from("transactions").insert({
+      company_id: CURRENT_COMPANY_ID,
+      description: document.getElementById("txDescription").value,
+      amount, type,
+      occurred_on: document.getElementById("txDate").value || new Date().toISOString().slice(0, 10)
+    });
+  } catch (_) {}
+  e.target.reset();
+  loadFinanceView();
+});
+
+/* =========================================================
+   SALES
+========================================================= */
+async function loadSalesView() {
+  document.getElementById("salesAddCard").style.display = CAN_WRITE_FINANCE() ? "block" : "none";
+  let rows = [];
+  try {
+    const { data } = await supabaseClient.from("deals").select("*").eq("company_id", CURRENT_COMPANY_ID).order("created_at", { ascending: false });
+    rows = data || [];
+  } catch (_) {}
+
+  const stages = ["prospecting", "negotiation", "closed_won", "closed_lost"];
+  const pipelineEl = document.getElementById("salesPipeline");
+  if (!rows.length) {
+    pipelineEl.innerHTML = stages.map(s => `
+      <div class="pipeline-stage">
+        <div class="stage-name">${s.replace("_", " ")}</div>
+        <div class="stage-count">${s === "prospecting" ? 8 : s === "negotiation" ? 5 : s === "closed_won" ? 12 : 3}</div>
+        <div class="stage-value">${s === "prospecting" ? "$420k" : s === "negotiation" ? "$610k" : s === "closed_won" ? "$1.1M" : "$90k"}</div>
+      </div>`).join("");
+  } else {
+    pipelineEl.innerHTML = stages.map(s => {
+      const subset = rows.filter(d => d.stage === s);
+      const val = subset.reduce((a, d) => a + Number(d.value || 0), 0);
+      return `<div class="pipeline-stage"><div class="stage-name">${s.replace("_", " ")}</div><div class="stage-count">${subset.length}</div><div class="stage-value">${fmtMoney(val)}</div></div>`;
+    }).join("");
+  }
+
+  const list = document.getElementById("dealsList");
+  if (!rows.length) {
+  list.innerHTML = `<div class="empty-state">No deals in the database yet.</div>`;
+  return;
+}
+  list.innerHTML = `
+    <table class="data-table">
+      <thead><tr><th>Deal</th><th>Stage</th><th>Value</th><th>Owner</th><th>Close date</th></tr></thead>
+      <tbody>
+        ${rows.map(d => `
+          <tr>
+            <td><strong>${d.name}</strong></td>
+            <td><span class="status-pill stage-${d.stage}">${(d.stage || "").replace("_", " ").toUpperCase()}</span></td>
+            <td>${fmtMoney(d.value)}</td>
+            <td>${d.owner || "—"}</td>
+            <td>${d.close_date || "—"}</td>
+          </tr>`).join("")}
+      </tbody>
+    </table>`;
+}
+
+document.getElementById("dealForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  try {
+    await supabaseClient.from("deals").insert({
+      company_id: CURRENT_COMPANY_ID,
+      name: document.getElementById("dealName").value,
+      value: Number(document.getElementById("dealValue").value),
+      stage: document.getElementById("dealStage").value,
+      owner: document.getElementById("dealOwner").value,
+      close_date: document.getElementById("dealCloseDate").value || null
+    });
+  } catch (_) {}
+  e.target.reset();
+  loadSalesView();
+});
+
+/* =========================================================
+   PROCUREMENT
+========================================================= */
+async function loadProcurementView() {
+  let rows = [];
+  try {
+    const { data } = await supabaseClient.from("procurement_requests").select("*").eq("company_id", CURRENT_COMPANY_ID).order("created_at", { ascending: false });
+    rows = data || [];
+  } catch (_) {}
+
+  const list = document.getElementById("procurementList");
+  if (!rows.length) {
+    list.innerHTML = `<div class="empty-state">No procurement requests yet.</div>`;
+    return;
+  }
+  list.innerHTML = `
+    <table class="data-table">
+      <thead><tr><th>Vendor</th><th>Item</th><th>Amount</th><th>Requested by</th><th>Status</th>${CAN_APPROVE() ? "<th></th>" : ""}</tr></thead>
+      <tbody>
+        ${rows.map(p => `
+          <tr>
+            <td><strong>${p.vendor}</strong></td>
+            <td>${p.item}</td>
+            <td>${fmtMoney(p.amount)}</td>
+            <td>${p.requested_by || "—"}</td>
+            <td><span class="status-pill status-${p.status}">${(p.status || "pending").toUpperCase()}</span></td>
+            ${CAN_APPROVE() && p.status === "pending" ? `
+              <td>
+                <button class="btn btn-approve btn-small" onclick="updateProcurement('${p.id}','approved')">Approve</button>
+                <button class="btn btn-reject btn-small" onclick="updateProcurement('${p.id}','rejected')">Reject</button>
+              </td>` : (CAN_APPROVE() ? "<td></td>" : "")}
+          </tr>`).join("")}
+      </tbody>
+    </table>`;
+}
+
+async function updateProcurement(id, status) {
+  await supabaseClient.from("procurement_requests").update({ status }).eq("id", id);
+  loadProcurementView();
+}
+
+document.getElementById("procurementForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const amount = Number(document.getElementById("procAmount").value);
+  try {
+    await supabaseClient.from("procurement_requests").insert({
+      company_id: CURRENT_COMPANY_ID,
+      vendor: document.getElementById("procVendor").value,
+      item: document.getElementById("procItem").value,
+      amount, amount_value: amount,
+      requested_by: CURRENT_PROFILE.full_name || CURRENT_USER.email,
+      requested_by_id: CURRENT_USER.id,
+      status: "pending"
+    });
+  } catch (_) {}
+  e.target.reset();
+  loadProcurementView();
+});
+
+/* =========================================================
+   AUTOMATIONS
+========================================================= */
+const RULE_LABELS = {
+  auto_approve_approvals: "Auto-approve requests under",
+  auto_approve_procurement: "Auto-approve procurement under",
+  auto_notify_high_risk: "Notify on high-risk employee"
 };
 
-(async()=>{ const {data:{session}}=await sb.auth.getSession(); if(session) await boot(); })();
+async function loadAutomationsView() {
+  document.getElementById("automationAddCard").style.display = CAN_MANAGE_AUTOMATIONS() ? "block" : "none";
+  let rows = [];
+  try {
+    const { data } = await supabaseClient.from("automation_rules").select("*").eq("company_id", CURRENT_COMPANY_ID).order("created_at", { ascending: false });
+    rows = data || [];
+  } catch (_) {}
+
+  document.getElementById("autoKpis").innerHTML = `
+  <div class="mod-kpi">
+    <div class="label">Active rules</div>
+    <div class="value">${rows.filter(r => r.enabled).length}</div>
+    <div class="delta">Running</div>
+  </div>
+
+  <div class="mod-kpi">
+    <div class="label">Auto-approvals (7d)</div>
+    <div class="value">—</div>
+    <div class="delta">No telemetry</div>
+  </div>
+
+  <div class="mod-kpi">
+    <div class="label">Risk notifications</div>
+    <div class="value">—</div>
+    <div class="delta">No telemetry</div>
+  </div>
+
+  <div class="mod-kpi">
+    <div class="label">Time saved</div>
+    <div class="value">—</div>
+    <div class="delta">Not calculated</div>
+  </div>`;
+
+  const list = document.getElementById("automationsList");
+  if (!rows.length) {
+    list.innerHTML = `<div class="empty-state">No automation rules in DB. Seed rules from schema_v3 or create one above.</div>`;
+    return;
+  }
+  list.innerHTML = `
+    <table class="data-table">
+      <thead><tr><th>Rule</th><th>Type</th><th>Threshold</th><th>Status</th>${CAN_MANAGE_AUTOMATIONS() ? "<th></th>" : ""}</tr></thead>
+      <tbody>
+        ${rows.map(r => `
+          <tr>
+            <td><strong>${r.name}</strong></td>
+            <td>${RULE_LABELS[r.rule_type] || r.rule_type}</td>
+            <td>${r.threshold != null ? fmtMoney(r.threshold) : "—"}</td>
+            <td><span class="status-pill ${r.enabled ? "status-approved" : "status-offboarded"}">${r.enabled ? "ACTIVE" : "PAUSED"}</span></td>
+            ${CAN_MANAGE_AUTOMATIONS() ? `
+              <td>
+                <button class="btn ${r.enabled ? "btn-reject" : "btn-approve"} btn-small" onclick="toggleAutomation('${r.id}', ${!r.enabled})">
+                  ${r.enabled ? "Pause" : "Activate"}
+                </button>
+              </td>` : ""}
+          </tr>`).join("")}
+      </tbody>
+    </table>
+    ${!CAN_MANAGE_AUTOMATIONS() ? `<p style="color:#65656d;font-size:11px;margin-top:10px;">View-only. The CEO can create or toggle rules.</p>` : ""}`;
+}
+
+async function toggleAutomation(id, enabled) {
+  await supabaseClient.from("automation_rules").update({ enabled }).eq("id", id);
+  loadAutomationsView();
+}
+
+document.getElementById("autoType").addEventListener("change", (e) => {
+  document.getElementById("autoThresholdField").style.display = e.target.value === "auto_notify_high_risk" ? "none" : "block";
+});
+
+document.getElementById("automationForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const type = document.getElementById("autoType").value;
+  try {
+    await supabaseClient.from("automation_rules").insert({
+      company_id: CURRENT_COMPANY_ID,
+      name: document.getElementById("autoName").value,
+      rule_type: type,
+      threshold: type === "auto_notify_high_risk" ? null : Number(document.getElementById("autoThreshold").value),
+      enabled: true
+    });
+  } catch (_) {}
+  e.target.reset();
+  loadAutomationsView();
+});
+
+/* =========================================================
+   SETTINGS
+========================================================= */
+function loadSettingsView() {
+  const el = document.getElementById("settingsProfile");
+  el.innerHTML = `
+    <strong style="color:var(--text)">Email:</strong> ${CURRENT_USER?.email || "—"}<br>
+    <strong style="color:var(--text)">Name:</strong> ${CURRENT_PROFILE?.full_name || "—"}<br>
+    <strong style="color:var(--text)">Role:</strong> ${CURRENT_ROLE || "—"}<br>
+    <strong style="color:var(--text)">Department:</strong> ${CURRENT_PROFILE?.department || "—"}<br>
+    <strong style="color:var(--text)">Company ID:</strong> ${CURRENT_COMPANY_ID || "—"}`;
+}
+
+/* =========================================================
+   NAV / VIEWS
+========================================================= */
+function toggleSidebar() {
+  document.getElementById("sidebar").classList.toggle("show");
+}
+
+const VIEW_TITLES = {
+  "command-center": "Executive Command Center",
+  approvals: "Approval Engine",
+  notifications: "Notification Center",
+  issues: "Issue Tracker",
+  hr: "HR Operating System",
+  directory: "Org Directory",
+  finance: "Finance",
+  sales: "Sales",
+  procurement: "Procurement",
+  automations: "AI Agents & Automation",
+  executive: "Executive Office & OKRs",
+  "it-security": "IT & Security",
+  compliance: "Compliance & AI Governance",
+  legal: "Legal",
+  marketing: "Marketing",
+  engineering: "Engineering",
+  "customer-success": "Customer Success",
+  memory: "Organizational Memory",
+  developer: "Developer / API",
+  differentiators: "What Makes Us Different",
+  settings: "Settings & RBAC"
+};
+
+const VIEW_LOADERS = {
+  approvals: loadApprovalsView,
+  notifications: loadNotificationsView,
+  issues: loadIssuesView,
+  hr: loadHrView,
+  directory: loadDirectoryView,
+  finance: loadFinanceView,
+  sales: loadSalesView,
+  procurement: loadProcurementView,
+  automations: loadAutomationsView,
+  settings: loadSettingsView
+};
+
+function showView(viewName) {
+  document.querySelectorAll(".view-section").forEach(v => v.classList.remove("active"));
+  const target = document.getElementById(`view-${viewName}`);
+  if (target) target.classList.add("active");
+  document.getElementById("pageTitle").innerText = VIEW_TITLES[viewName] || "WatchTower";
+  if (VIEW_LOADERS[viewName]) VIEW_LOADERS[viewName]();
+  // close mobile sidebar
+  document.getElementById("sidebar").classList.remove("show");
+}
+
+document.addEventListener("click", (e) => {
+  const navBtn = e.target.closest(".nav-item");
+  if (!navBtn) return;
+  document.querySelectorAll(".nav-item").forEach(nav => nav.classList.remove("active"));
+  navBtn.classList.add("active");
+  const viewName = navBtn.dataset.view;
+  if (!viewName) return;
+  showView(viewName);
+});
+
+/* =========================================================
+   BOOT
+========================================================= */
+(async function init() {
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if (session) await loadDashboard();
+  else showAuthScreen();
+
+  supabaseClient.auth.onAuthStateChange((event) => {
+    if (event === "SIGNED_OUT") showAuthScreen();
+  });
+})();
 </script>
 </body>
 </html>
