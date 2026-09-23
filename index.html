@@ -2101,12 +2101,16 @@ const shadowAiMonitoring = [
     status: policyViolations.length > 0 ? "REVIEW" : "OK"
   }
 ];
-const departmentRows = (departments.data || []).map(dept => {
-  const deptEmployees = (employees.data || []).filter(
+const departmentData = departments?.data || [];
+const employeeData = employees?.data || [];
+const issueData = issues?.data || [];
+
+const departmentRows = departmentData.map(dept => {
+  const deptEmployees = employeeData.filter(
     e => e.department === dept.name && e.status !== "offboarded"
   );
 
-  const deptIssues = (issues.data || []).filter(
+  const deptIssues = issueData.filter(
     i => i.department === dept.name && i.status !== "resolved"
   );
 
