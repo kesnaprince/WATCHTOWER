@@ -2061,6 +2061,74 @@ async function loadDashboard() {
     .eq("company_id", companyId)
     .order("detected_at", { ascending: false })
 ]);
+const departmentRows = (departments?.data || []).map(dept => {
+
+  const deptEmployees = (employees?.data || []).filter(
+    e => e.department === dept.name && e.status !== "offboarded"
+  );
+
+  const deptIssues = (issues?.data || []).filter(
+    i => i.department === dept.name && i.status !== "resolved"
+  );
+
+  let score = 100;
+
+  deptIssues.forEach(issue => {
+    if (issue.severity === "critical") score -= 20;
+    else if (issue.severity === "high") score -= 12;
+    else if (issue.severity === "medium") score -= 6;
+    else if (issue.severity === "low") score -= 2;
+  });
+
+  deptEmployees.forEach(employee => {
+    if (employee.risk === "high") score -= 8;
+    else if (employee.risk === "medium") score -= 4;
+  });
+
+  score = Math.max(0, Math.min(100, score));
+
+  return {
+    ...dept,
+    score
+  };
+});
+const telemetryRows = aiTelemetry?.data || [];
+
+const shadowAiTools = new Set(
+  telemetryRows
+    .map(row => row.tool_name)
+    .filter(Boolean)
+);
+
+const policyViolations = telemetryRows.filter(
+  row => row.event_type === "policy_violation"
+);
+
+const recentTelemetry = telemetryRows.filter(row => {
+  const detectedTime = new Date(row.detected_at).getTime();
+  return detectedTime >= Date.now() - (24 * 60 * 60 * 1000);
+});
+
+const shadowAiMonitoring = [
+  {
+    title: "Shadow AI tools",
+    number: shadowAiTools.size,
+    description: "Unique AI tools detected by telemetry.",
+    status: shadowAiTools.size > 0 ? "REVIEW" : "OK"
+  },
+  {
+    title: "AI activity (24h)",
+    number: recentTelemetry.length,
+    description: "AI telemetry events recorded in the last 24 hours.",
+    status: "OK"
+  },
+  {
+    title: "Policy violations",
+    number: policyViolations.length,
+    description: "AI usage events flagged by governance policy.",
+    status: policyViolations.length > 0 ? "REVIEW" : "OK"
+  }
+];
 
 const telemetryRows = aiTelemetry?.data || [];
 
@@ -2128,37 +2196,7 @@ const DATA = {
   aiMonitoring: shadowAiMonitoring
 };
 
- const departmentRows = (departments?.data || []).map(dept => {
-
-  const deptEmployees = (employees?.data || []).filter(
-    e => e.department === dept.name && e.status !== "offboarded"
-  );
-
-  const deptIssues = (issues?.data || []).filter(
-    i => i.department === dept.name && i.status !== "resolved"
-  );
-
-  let score = 100;
-
-  deptIssues.forEach(issue => {
-    if (issue.severity === "critical") score -= 20;
-    else if (issue.severity === "high") score -= 12;
-    else if (issue.severity === "medium") score -= 6;
-    else if (issue.severity === "low") score -= 2;
-  });
-
-  deptEmployees.forEach(employee => {
-    if (employee.risk === "high") score -= 8;
-    else if (employee.risk === "medium") score -= 4;
-  });
-
-  score = Math.max(0, Math.min(100, score));
-
-  return {
-    ...dept,
-    score
-  };
-});
+ 
   render(DATA); 
   showApp(); 
  
