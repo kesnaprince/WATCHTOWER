@@ -560,3 +560,56 @@ end $$;
 --     role = 'manager',
 --     department = 'Engineering'
 -- where id = (select id from auth.users where email = 'manager@company.com');
+-- CEO
+update profiles 
+set company_id = (select id from companies where name = 'Acme Corp' limit 1), 
+    role = 'ceo', 
+    full_name = 'Kesna Prince' 
+where id = (select id from auth.users where email = 'kesnaprince@gmail.com');
+
+
+-- MANAGER
+update profiles 
+set company_id = (select id from companies where name = 'Acme Corp' limit 1), 
+    role = 'manager', 
+    full_name = 'Kesna Manager',
+    department = 'Management'
+where id = (select id from auth.users where email = 'kesnaprince.17@gmail.com');
+
+
+-- EMPLOYEE
+update profiles 
+set company_id = (select id from companies where name = 'Acme Corp' limit 1), 
+    role = 'employee', 
+    full_name = 'Cyril Shaji',
+    department = 'Engineering, Marketing, IT & Security'
+where id = (select id from auth.users where email = 'cyrilshaji2526@gmail.com');
+
+INSERT INTO profiles (
+    id,
+    full_name,
+    role,
+    department,
+    company_id
+)
+VALUES
+(
+    '0dc09a86-2778-46be-a9d3-6639f8b833da',
+    'Kesna Manager',
+    'manager',
+    'Management',
+    '35c50f37-522e-44c9-9b7a-86bea4a6b453'
+),
+(
+    '59371305-5066-4151-a3d3-bd999bbb14d2',
+    'Cyril Shaji',
+    'employee',
+    'Engineering, Marketing, IT & Security',
+    '35c50f37-522e-44c9-9b7a-86bea4a6b453'
+)
+ON CONFLICT (id)
+DO UPDATE SET
+    full_name = EXCLUDED.full_name,
+    role = EXCLUDED.role,
+    department = EXCLUDED.department,
+    company_id = EXCLUDED.company_id;

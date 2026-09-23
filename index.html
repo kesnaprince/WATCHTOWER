@@ -1610,61 +1610,6 @@ const SUPABASE_URL = "https://kjmvhrwxnkcsmbmymqvp.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_NJuM7_9Se9sXZYZ3J0Gsnw_imtHI_IK";
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-/* =========================================================
-   DEMO FALLBACK DATA (so the pitch looks complete even if DB is empty)
-========================================================= */
-const DEMO = {
-  departments: [
-    { name: "Engineering", score: 78 },
-    { name: "Sales", score: 71 },
-    { name: "Marketing", score: 68 },
-    { name: "Customer Success", score: 82 },
-    { name: "Finance", score: 74 },
-    { name: "Product", score: 76 }
-  ],
-  alerts: [
-    { level: "CRIT", title: "Phishing campaign detected", description: "3 users reported. SOC investigating." },
-    { level: "HIGH", title: "Enterprise deal at risk", description: "Northwind MSA stuck on liability language." },
-    { level: "MED", title: "Sprint capacity tight", description: "Engineering velocity below target this sprint." }
-  ],
-  actions: [
-    { title: "Review Northwind MSA", description: "Legal + Sales need CEO decision on liability cap." },
-    { title: "Approve marketing budget top-up", description: "Launch campaign needs +$12k this week." },
-    { title: "Close 2 P0 bugs before release", description: "Engineering has patches ready for review." }
-  ],
-  activities: [
-    { name: "Priya S.", action: "closed a $48k deal", time: "12 min ago", type: "green" },
-    { name: "Marcus T.", action: "flagged high-risk employee", time: "34 min ago", type: "yellow" },
-    { name: "Aisha K.", action: "submitted procurement request", time: "1h ago", type: "blue" },
-    { name: "System", action: "auto-approved expense under $500", time: "2h ago", type: "green" }
-  ],
-  wins: [
-    "Closed Contoso expansion — +$62k ARR",
-    "SOC2 evidence pack 88% complete",
-    "WatchTower 3.0 waitlist crossed 2,100"
-  ],
-  risks: [
-    { name: "Churn risk (Contoso)", level: "High", value: 72, class_name: "high" },
-    { name: "Security posture", level: "Medium", value: 45, class_name: "high" },
-    { name: "Burn runway", level: "Low", value: 22, class_name: "low" }
-  ],
-  aiMonitoring: [
-    { title: "Shadow AI tools", number: "7", description: "Unapproved tools detected in browser traffic.", status: "REVIEW" },
-    { title: "Model usage (24h)", number: "14.2k", description: "Calls across approved models.", status: "OK" },
-    { title: "Policy violations", number: "2", description: "Potential PII in prompt logs — quarantined.", status: "REVIEW" }
-  ],
-  employees: [
-    { name: "Alex Chen", title: "Senior Front-end Engineer", department: "Engineering", email: "alex@acme.com", status: "active", risk: "low" },
-    { name: "Jordan Lee", title: "Back-end Engineer", department: "Engineering", email: "jordan@acme.com", status: "active", risk: "low" },
-    { name: "Sam Rivera", title: "UI/UX Designer", department: "Design", email: "sam@acme.com", status: "active", risk: "low" },
-    { name: "Taylor Kim", title: "Manual QA", department: "Engineering", email: "taylor@acme.com", status: "active", risk: "medium" },
-    { name: "Casey Brooks", title: "Automation QA", department: "Engineering", email: "casey@acme.com", status: "active", risk: "low" },
-    { name: "Morgan Blake", title: "Product Manager", department: "Product", email: "morgan@acme.com", status: "active", risk: "low" },
-    { name: "Riley Quinn", title: "Account Executive", department: "Sales", email: "riley@acme.com", status: "active", risk: "low" },
-    { name: "Jamie Ortiz", title: "Legal Counsel", department: "Legal", email: "jamie@acme.com", status: "active", risk: "low" }
-  ]
-};
-
 /* Issues use real Supabase table `issues` (see schema.sql) */
 /* =========================================================
    ROLE BASED AUTH
@@ -1994,96 +1939,264 @@ function timeAgo(isoString) {
   return `${Math.floor(hours / 24)}d ago`;
 }
 
-/* =========================================================
-   LOAD DASHBOARD
-========================================================= */
-async function loadDashboard() {
-  const { data: { user } } = await supabaseClient.auth.getUser();
-  if (!user) { showAuthScreen(); return; }
+/* ========================================================= 
+   LOAD DASHBOARD 
+========================================================= */ 
+async function loadDashboard() { 
+  const { data: { user } } = await supabaseClient.auth.getUser(); 
+  if (!user) { 
+    showAuthScreen(); 
+    return; 
+  } 
+ 
+  let profile = null; 
+  let profileError = null; 
+ 
+  try { 
+    const res = await supabaseClient
+      .from("profiles")
+      .select("*, companies(*)")
+      .eq("id", user.id)
+      .single(); 
+ 
+    profile = res.data; 
+    profileError = res.error; 
+  } catch (e) { 
+    profileError = e; 
+  } 
+ 
+  if (profileError || !profile || !profile.company_id) { 
+    await supabaseClient.auth.signOut(); 
+ 
+    showAuthScreen(); 
+ 
+    setAuthError( 
+      "Your WatchTower profile could not be loaded. Please contact the administrator." 
+    ); 
+ 
+    return; 
+  } 
+ 
+  const companyId = profile.company_id; 
+  const company = profile.companies; 
+ 
+  if (!company) { 
+    await supabaseClient.auth.signOut(); 
+ 
+    showAuthScreen(); 
+ 
+    setAuthError( 
+      "Your company record could not be loaded. Please contact the administrator." 
+    ); 
+ 
+    return; 
+  } 
+ 
+  CURRENT_PROFILE = profile; 
+  CURRENT_COMPANY_ID = companyId; 
+  CURRENT_ROLE = profile.role || "employee"; 
+ 
+  const [
+  departments,
+  alerts,
+  actions,
+  activities,
+  wins,
+  risks,
+  aiMonitoring,
+  employees,
+  issues,
+  aiTelemetry
+] = await Promise.all([
+  supabaseClient
+    .from("departments")
+    .select("*")
+    .eq("company_id", companyId)
+    .order("sort_order"),
 
-  let profile = null;
-  let profileError = null;
-  try {
-    const res = await supabaseClient.from("profiles").select("*, companies(*)").eq("id", user.id).single();
-    profile = res.data;
-    profileError = res.error;
-  } catch (e) {
-    profileError = e;
+  supabaseClient
+    .from("alerts")
+    .select("*")
+    .eq("company_id", companyId)
+    .order("created_at", { ascending: false }),
+
+  supabaseClient
+    .from("actions")
+    .select("*")
+    .eq("company_id", companyId)
+    .order("sort_order"),
+
+  supabaseClient
+    .from("activities")
+    .select("*")
+    .eq("company_id", companyId)
+    .order("created_at", { ascending: false })
+    .limit(8),
+
+  supabaseClient
+    .from("wins")
+    .select("*")
+    .eq("company_id", companyId)
+    .order("created_at", { ascending: false }),
+
+  supabaseClient
+    .from("risks")
+    .select("*")
+    .eq("company_id", companyId)
+    .order("sort_order"),
+
+  supabaseClient
+    .from("ai_monitoring")
+    .select("*")
+    .eq("company_id", companyId)
+    .order("sort_order"),
+
+  supabaseClient
+    .from("employees")
+    .select("department,status,risk")
+    .eq("company_id", companyId),
+
+  supabaseClient
+  .from("ai_telemetry")
+  .select("*")
+  .eq("company_id", companyId)
+  .order("detected_at", { ascending: false })
+]);
+const telemetryRows = aiTelemetry.data || [];
+
+const shadowAiTools = new Set(
+  telemetryRows
+    .map(row => row.tool_name)
+    .filter(Boolean)
+);
+
+const policyViolations = telemetryRows.filter(
+  row => row.event_type === "policy_violation"
+);
+
+const recentTelemetry = telemetryRows.filter(row => {
+  const detectedTime = new Date(row.detected_at).getTime();
+  return detectedTime >= Date.now() - (24 * 60 * 60 * 1000);
+});
+
+const shadowAiMonitoring = [
+  {
+    title: "Shadow AI tools",
+    number: shadowAiTools.size,
+    description: "Unique AI tools detected by telemetry.",
+    status: shadowAiTools.size > 0 ? "REVIEW" : "OK"
+  },
+
+  {
+    title: "AI activity (24h)",
+    number: recentTelemetry.length,
+    description: "AI telemetry events recorded in the last 24 hours.",
+    status: "OK"
+  },
+
+  {
+    title: "Policy violations",
+    number: policyViolations.length,
+    description: "AI usage events flagged by governance policy.",
+    status: policyViolations.length > 0 ? "REVIEW" : "OK"
   }
-
-  if (profileError || !profile || !profile.company_id) {
-
-  await supabaseClient.auth.signOut();
-
-  showAuthScreen();
-
-  setAuthError(
-    "Your WatchTower profile could not be loaded. Please contact the administrator."
+];
+const departmentRows = (departments.data || []).map(dept => {
+  const deptEmployees = (employees.data || []).filter(
+    e => e.department === dept.name && e.status !== "offboarded"
   );
 
-  return;
-}
+  const deptIssues = (issues.data || []).filter(
+    i => i.department === dept.name && i.status !== "resolved"
+  );
 
-  const companyId = profile.company_id;
-  const company = profile.companies || { name: "Acme Corp", founder_score: 71, pipeline: "$2.4M", headcount: 48, open_requisitions: 3, approvals: 5, ai_risk_score: 34 };
+  let score = 100;
 
-  CURRENT_USER = user;
-  CURRENT_PROFILE = profile;
-  CURRENT_COMPANY_ID = companyId;
-  CURRENT_ROLE = profile.role || "employee";
+  deptIssues.forEach(issue => {
+    if (issue.severity === "critical") score -= 20;
+    else if (issue.severity === "high") score -= 12;
+    else if (issue.severity === "medium") score -= 6;
+    else if (issue.severity === "low") score -= 2;
+  });
 
-  const [departments, alerts, actions, activities, wins, risks, aiMonitoring] = await Promise.all([
-    supabaseClient.from("departments").select("*").eq("company_id", companyId).order("sort_order"),
-    supabaseClient.from("alerts").select("*").eq("company_id", companyId).order("created_at", { ascending: false }),
-    supabaseClient.from("actions").select("*").eq("company_id", companyId).order("sort_order"),
-    supabaseClient.from("activities").select("*").eq("company_id", companyId).order("created_at", { ascending: false }).limit(8),
-    supabaseClient.from("wins").select("*").eq("company_id", companyId).order("created_at", { ascending: false }),
-    supabaseClient.from("risks").select("*").eq("company_id", companyId).order("sort_order"),
-    supabaseClient.from("ai_monitoring").select("*").eq("company_id", companyId).order("sort_order")
-  ]);
+  deptEmployees.forEach(employee => {
+    if (employee.risk === "high") score -= 8;
+    else if (employee.risk === "medium") score -= 4;
+  });
 
-  const DATA = {
-    company,
-    role: CURRENT_ROLE,
-    departments: (departments.data && departments.data.length) ? departments.data : DEMO.departments,
-    alerts: (alerts.data && alerts.data.length) ? alerts.data : DEMO.alerts,
-    actions: (actions.data && actions.data.length) ? actions.data : DEMO.actions,
-    activities: (activities.data && activities.data.length)
-      ? activities.data.map(a => ({ name: a.actor_name, action: a.action_text, time: timeAgo(a.created_at), type: a.type }))
-      : DEMO.activities,
-    wins: (wins.data && wins.data.length) ? wins.data.map(w => w.text) : DEMO.wins,
-    risks: (risks.data && risks.data.length) ? risks.data : DEMO.risks,
-    aiMonitoring: (aiMonitoring.data && aiMonitoring.data.length)
-      ? aiMonitoring.data.map(a => ({ title: a.title, number: a.number, description: a.description, status: a.status }))
-      : DEMO.aiMonitoring
+  score = Math.max(0, Math.min(100, score));
+
+  return {
+    ...dept,
+    score
   };
+});
+ const DATA = {
+  company,
+  role: CURRENT_ROLE,
 
-  render(DATA);
-  showApp();
+  departments: departmentRows,
 
-  try {
-    const { count } = await supabaseClient.from("notifications").select("*", { count: "exact", head: true }).eq("company_id", companyId).eq("is_read", false);
-    updateNotifBadges(count ?? 0);
-  } catch (_) {
-    updateNotifBadges(0);
-  }
-  try {
-    const { count: issueCount } = await supabaseClient.from("issues").select("*", { count: "exact", head: true }).eq("company_id", companyId).eq("status", "open");
-    const badge = document.getElementById("issueBadge");
-    if (badge) {
-      if (issueCount > 0) { badge.style.display = "flex"; badge.innerText = issueCount; }
-      else badge.style.display = "none";
-    }
-  } catch (_) {}
+  alerts: alerts.data || [],
+
+  actions: actions.data || [],
+
+  activities: (activities.data || []).map(a => ({
+    name: a.actor_name,
+    action: a.action_text,
+    time: timeAgo(a.created_at),
+    type: a.type
+  })),
+
+  wins: (wins.data || []).map(w => w.text),
+
+  risks: risks.data || [],
+
+  aiMonitoring: shadowAiMonitoring
+}; 
+ 
+  render(DATA); 
+  showApp(); 
+ 
+  try { 
+    const { count } = await supabaseClient
+      .from("notifications")
+      .select("*", { count: "exact", head: true })
+      .eq("company_id", companyId)
+      .eq("is_read", false); 
+ 
+    updateNotifBadges(count ?? 0); 
+  } catch (_) { 
+    updateNotifBadges(0); 
+  } 
+ 
+  try { 
+    const { count: issueCount } = await supabaseClient
+      .from("issues")
+      .select("*", { count: "exact", head: true })
+      .eq("company_id", companyId)
+      .eq("status", "open"); 
+ 
+    const badge = document.getElementById("issueBadge"); 
+ 
+    if (badge) { 
+      if (issueCount > 0) { 
+        badge.style.display = "flex"; 
+        badge.innerText = issueCount; 
+      } else { 
+        badge.style.display = "none"; 
+      } 
+    } 
+  } catch (_) {} 
+} 
+ 
+function updateNotifBadges(n) { 
+  const badge = document.getElementById("notifBadge"); 
+  const top = document.getElementById("topNotifCount"); 
+ 
+  if (badge) badge.innerText = n; 
+  if (top) top.innerText = n; 
 }
-
-function updateNotifBadges(n) {
-  const badge = document.getElementById("notifBadge");
-  const top = document.getElementById("topNotifCount");
-  if (badge) badge.innerText = n;
-  if (top) top.innerText = n;
-}
-
 /* =========================================================
    RENDER COMMAND CENTER
 ========================================================= */
@@ -2451,7 +2564,7 @@ async function loadHrView() {
     const { data } = await supabaseClient.from("employees").select("*").eq("company_id", CURRENT_COMPANY_ID).order("created_at", { ascending: false });
     rows = data || [];
   } catch (_) {}
-  if (!rows.length) rows = DEMO.employees;
+  if (!rows.length) rows = [];
 
   document.getElementById("hrKpis").innerHTML = `
     <div class="mod-kpi"><div class="label">Headcount</div><div class="value">${rows.length}</div><div class="delta">Active roster</div></div>
@@ -2500,7 +2613,7 @@ async function loadDirectoryView() {
     const { data } = await supabaseClient.from("employees").select("*").eq("company_id", CURRENT_COMPANY_ID).order("department");
     rows = data || [];
   } catch (_) {}
-  if (!rows.length) rows = DEMO.employees;
+  if (!rows.length) rows = [];
   document.getElementById("directoryList").innerHTML = `
     <table class="data-table">
       <thead><tr><th>Name</th><th>Title</th><th>Department</th><th>Email</th><th>Status</th><th>Risk</th></tr></thead>
@@ -2604,9 +2717,9 @@ async function loadSalesView() {
 
   const list = document.getElementById("dealsList");
   if (!rows.length) {
-    list.innerHTML = `<div class="empty-state">No deals in the database yet. Demo pipeline shown above.</div>`;
-    return;
-  }
+  list.innerHTML = `<div class="empty-state">No deals in the database yet.</div>`;
+  return;
+}
   list.innerHTML = `
     <table class="data-table">
       <thead><tr><th>Deal</th><th>Stage</th><th>Value</th><th>Owner</th><th>Close date</th></tr></thead>
@@ -2716,10 +2829,29 @@ async function loadAutomationsView() {
   } catch (_) {}
 
   document.getElementById("autoKpis").innerHTML = `
-    <div class="mod-kpi"><div class="label">Active rules</div><div class="value">${rows.filter(r => r.enabled).length || 3}</div><div class="delta">Running</div></div>
-    <div class="mod-kpi"><div class="label">Auto-approvals (7d)</div><div class="value">18</div><div class="delta">Demo</div></div>
-    <div class="mod-kpi"><div class="label">Risk notifications</div><div class="value">2</div><div class="delta">This week</div></div>
-    <div class="mod-kpi"><div class="label">Time saved</div><div class="value">~6h</div><div class="delta">Estimated</div></div>`;
+  <div class="mod-kpi">
+    <div class="label">Active rules</div>
+    <div class="value">${rows.filter(r => r.enabled).length}</div>
+    <div class="delta">Running</div>
+  </div>
+
+  <div class="mod-kpi">
+    <div class="label">Auto-approvals (7d)</div>
+    <div class="value">—</div>
+    <div class="delta">No telemetry</div>
+  </div>
+
+  <div class="mod-kpi">
+    <div class="label">Risk notifications</div>
+    <div class="value">—</div>
+    <div class="delta">No telemetry</div>
+  </div>
+
+  <div class="mod-kpi">
+    <div class="label">Time saved</div>
+    <div class="value">—</div>
+    <div class="delta">Not calculated</div>
+  </div>`;
 
   const list = document.getElementById("automationsList");
   if (!rows.length) {
