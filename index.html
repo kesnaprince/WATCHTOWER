@@ -2003,11 +2003,11 @@ async function loadDashboard() {
   activities,
   wins,
   risks,
-  aiMonitoring,
   employees,
   issues,
   aiTelemetry
 ] = await Promise.all([
+
   supabaseClient
     .from("departments")
     .select("*")
@@ -2046,23 +2046,23 @@ async function loadDashboard() {
     .order("sort_order"),
 
   supabaseClient
-    .from("ai_monitoring")
-    .select("*")
-    .eq("company_id", companyId)
-    .order("sort_order"),
-
-  supabaseClient
     .from("employees")
     .select("department,status,risk")
     .eq("company_id", companyId),
 
   supabaseClient
-  .from("ai_telemetry")
-  .select("*")
-  .eq("company_id", companyId)
-  .order("detected_at", { ascending: false })
+    .from("issues")
+    .select("department,severity,status")
+    .eq("company_id", companyId),
+
+  supabaseClient
+    .from("ai_telemetry")
+    .select("*")
+    .eq("company_id", companyId)
+    .order("detected_at", { ascending: false })
 ]);
-const telemetryRows = aiTelemetry.data || [];
+
+const telemetryRows = aiTelemetry?.data || [];
 
 const shadowAiTools = new Set(
   telemetryRows
@@ -2076,6 +2076,7 @@ const policyViolations = telemetryRows.filter(
 
 const recentTelemetry = telemetryRows.filter(row => {
   const detectedTime = new Date(row.detected_at).getTime();
+
   return detectedTime >= Date.now() - (24 * 60 * 60 * 1000);
 });
 
@@ -2101,16 +2102,39 @@ const shadowAiMonitoring = [
     status: policyViolations.length > 0 ? "REVIEW" : "OK"
   }
 ];
-const departmentData = departments?.data || [];
-const employeeData = employees?.data || [];
-const issueData = issues?.data || [];
 
-const departmentRows = departmentData.map(dept => {
-  const deptEmployees = employeeData.filter(
+
+const DATA = {
+  company,
+  role: CURRENT_ROLE,
+
+  departments: departmentRows,
+
+  alerts: alerts?.data || [],
+
+  actions: actions?.data || [],
+
+  activities: (activities?.data || []).map(a => ({
+    name: a.actor_name,
+    action: a.action_text,
+    time: timeAgo(a.created_at),
+    type: a.type
+  })),
+
+  wins: (wins?.data || []).map(w => w.text),
+
+  risks: risks?.data || [],
+
+  aiMonitoring: shadowAiMonitoring
+};
+
+ const departmentRows = (departments?.data || []).map(dept => {
+
+  const deptEmployees = (employees?.data || []).filter(
     e => e.department === dept.name && e.status !== "offboarded"
   );
 
-  const deptIssues = issueData.filter(
+  const deptIssues = (issues?.data || []).filter(
     i => i.department === dept.name && i.status !== "resolved"
   );
 
@@ -2135,30 +2159,6 @@ const departmentRows = departmentData.map(dept => {
     score
   };
 });
- const DATA = {
-  company,
-  role: CURRENT_ROLE,
-
-  departments: departmentRows,
-
-  alerts: alerts.data || [],
-
-  actions: actions.data || [],
-
-  activities: (activities.data || []).map(a => ({
-    name: a.actor_name,
-    action: a.action_text,
-    time: timeAgo(a.created_at),
-    type: a.type
-  })),
-
-  wins: (wins.data || []).map(w => w.text),
-
-  risks: risks.data || [],
-
-  aiMonitoring: shadowAiMonitoring
-}; 
- 
   render(DATA); 
   showApp(); 
  
